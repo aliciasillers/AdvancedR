@@ -1,0 +1,111 @@
+---
+title: "chapter 4"
+author: "Alicia Sillers"
+date: "2022-09-12"
+output: 
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Quiz
+
+1. What is the result of subsetting a vector with positive integers, negative integers, a logical vector, or a character vector?
+My Answer: I'm not sure what this means.
+Textbook Answer: Positive integers select elements at specific positions, negative integers drop elements; logical vectors keep elements at positions corresponding to TRUE; character vectors select elements with matching names.
+
+2. What’s the difference between [, [[, and $ when applied to a list?
+My Answer: I know $ is used to select an element by name. I'm not sure how the others compare.
+Textbook Answer: [ selects sub-lists: it always returns a list. If you use it with a single positive integer, it returns a list of length one. [[ selects an element within a list. $ is a convenient shorthand: x$y is equivalent to x[["y"]].
+
+3. When should you use drop = FALSE?
+My Answer: I don't know. 
+Textbook Answer: Use drop = FALSE if you are subsetting a matrix, array, or data frame and you want to preserve the original dimensions. You should almost always use it when subsetting inside a function.
+
+4. If x is a matrix, what does x[] <- 0 do? How is it different from x <- 0?
+My Answer: I believe x[] <- 0 would empty the matrix whereas x <- 0 would make x represent the number 0 rather than a matrix. 
+Textbook Answer: If x is a matrix, x[] <- 0 will replace every element with 0, keeping the same number of rows and columns. In contrast, x <- 0 completely replaces the matrix with the value 0.
+
+5. How can you use a named vector to relabel categorical variables?
+My Answer: I don't know.
+Textbook Answer: A named character vector can act as a simple lookup table: c(x = 1, y = 2, z = 3)[c("y", "z", "x")]
+
+# 4.2.6 Exercises
+
+1. Fix each of the following common data frame subsetting errors:
+mtcars[mtcars$cyl = 4, ]
+mtcars[-1:4, ]
+mtcars[mtcars$cyl <= 5]
+mtcars[mtcars$cyl == 4 | 6, ]
+
+Answer:
+```{r}
+mtcars[mtcars$cyl == 4, ]
+mtcars[-1:-4, ]
+mtcars[mtcars$cyl <= 5, ]
+mtcars[mtcars$cyl == 4 | 6, ] #not sure what the problem is here
+```
+
+2. Why does the following code yield five missing values? (Hint: why is it different from x[NA_real_]?)
+```{r}
+x <- 1:5
+x[NA]
+#> [1] NA NA NA NA NA
+```
+Answer: A missing value in the input always yields a missing value in the output.
+
+3. What does upper.tri() return? How does subsetting a matrix with it work? Do we need any additional subsetting rules to describe its behaviour?
+```{r}
+x <- outer(1:5, 1:5, FUN = "*")
+x[upper.tri(x)]
+```
+Answer: upper.tri() returns a matrix of logical values with TRUE as the value of every position in the upper triangle of the matrix and FALSE for everything else. I think x[upper.tri(x)] returns the values that upper.tri would return as TRUE, meaning that it returns the values in the upper triangle of the matrix. 
+
+4. Why does mtcars[1:20] return an error? How does it differ from the similar mtcars[1:20, ]?
+Answer: It returns an error because mtcars is a dataset, so to subset from it there needs to be an indication both of which rows to select and which columns to select. mtcars[1:20, ] differs because the comma indicated that 1:20 refers to rows and that whatever is after the comma refers to columns. Since there is no value in this case, it refers to all columns. 
+
+5. Implement your own function that extracts the diagonal entries from a matrix (it should behave like diag(x) where x is a matrix).
+Answer:
+```{r}
+fdiagonal <- function(m){
+  diag(m)
+}
+
+fdiagonal(x)
+```
+
+6. What does df[is.na(df)] <- 0 do? How does it work?
+Answer: I think it would replace all values of 0 with NA.
+
+# 4.3.5 Exercises
+
+1. Brainstorm as many ways as possible to extract the third value from the cyl variable in the mtcars dataset.
+Answer:
+```{r}
+mtcars$cyl[[3]]
+mtcars[[3, 'cyl']]
+```
+
+2. Given a linear model, e.g., mod <- lm(mpg ~ wt, data = mtcars), extract the residual degrees of freedom. Then extract the R squared from the model summary (summary(mod))
+Answer:
+```{r}
+mod <- lm(mpg ~ wt, data = mtcars)
+mod$df.residual
+summary(mod)[[8]]
+```
+
+# 4.5.9 Exercises
+
+1. How would you randomly permute the columns of a data frame? (This is an important technique in random forests.) Can you simultaneously permute the rows and columns in one step?
+Answer: df[, sample(ncol(df))]. You can permute rows and columns in one step 
+
+2. How would you select a random sample of m rows from a data frame? What if the sample had to be contiguous (i.e., with an initial row, a final row, and every row in between)?
+Answer: ??? use sample() to select random rows, but not sure how to generate a random number or rows or how to make them contiguous. 
+
+3. How could you put the columns in a data frame in alphabetical order?
+Answer: You could apply order() to the column names: df[, order(colnames(df))]
+
+
