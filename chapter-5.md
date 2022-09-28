@@ -1,0 +1,144 @@
+---
+title: "chapter 5"
+author: "Alicia Sillers"
+date: "2022-09-26"
+output: 
+  html_document:
+   keep_md: yes
+---
+
+
+
+# Quiz
+
+1. What is the difference between if and ifelse()?
+Answer: if only looks for one specific input and performs a command or set of commands if it is true and does not perform the command if it is false. if else is different because it can detect multiple possible inputs and has different outcomes depending on which input is true. 
+Textbook Answer: if works with scalars, ifelse works with vectors
+
+2. In the following code, what will the value of y be if x is TRUE? What if x is FALSE? What if x is NA?
+
+```r
+#y <- if (x) 3
+```
+Answer: TRUE: 3, FALSE: NULL, NA: NA
+Textbook Answer: TRUE: 3, FALSE: NULL, NA: error
+
+3. What does switch("x", x = , y = 2, z = 3) return?
+Answer: I don't know
+Textbook Answer: 2
+
+# 5.2.4 Exercises
+
+1. What type of vector does each of the following calls to ifelse() return? Read the documentation and write down the rules in your own words.
+
+```r
+ifelse(TRUE, 1, "no")
+```
+
+```
+## [1] 1
+```
+
+```r
+ifelse(FALSE, 1, "no")
+```
+
+```
+## [1] "no"
+```
+
+```r
+ifelse(NA, 1, "no")
+```
+
+```
+## [1] NA
+```
+Answer: numeric vector, character vector, logical vector; an ifelse() statement has an input called test that can be logically interpreted as true or false, an output called yes that is returned when the test is true, and an output called no that is returned when the test is false. NA always returns NA. 
+
+2. Why does the following code work?
+
+```r
+x <- 1:10
+if (length(x)) "not empty" else "empty"
+```
+
+```
+## [1] "not empty"
+```
+
+```r
+#> [1] "not empty"
+
+x <- numeric()
+if (length(x)) "not empty" else "empty"
+```
+
+```
+## [1] "empty"
+```
+
+```r
+#> [1] "empty"
+```
+Answer: My interpretation of this code is that length(x) is interpreted as true if x has any length, meaning a length greater than 0. When x <- 1:10, the length is greater than 0 so that condition is true and prints the first output. When x <- numeric(), the length is 0, which can be interpreted as not having any length, which would make length(x) logically interpreted as false, so the if statement would move on to the output for else. 
+
+# 5.3.3 Exercises
+
+1. Why does this code succeed without errors or warnings?
+
+```r
+x <- numeric()
+out <- vector("list", length(x))
+for (i in 1:length(x)) {
+  out[i] <- x[i] ^ 2
+}
+out
+```
+
+```
+## [[1]]
+## [1] NA
+```
+Answer: I think it has to do with the fact that even though the length of x is 0, it has a numeric data type. This results in NA.
+
+2. When the following code is evaluated, what can you say about the vector being iterated?
+
+```r
+xs <- c(1, 2, 3)
+for (x in xs) {
+  xs <- c(xs, x * 2)
+}
+xs
+```
+
+```
+## [1] 1 2 3 2 4 6
+```
+
+```r
+#> [1] 1 2 3 2 4 6
+```
+Answer: It seems like the first loop through the for loop would result in xs being repeated with the original 1 being doubled, then the next two loops would double the original 2 and 3. This means the resulting vector returns the copy of the original, 1 2 3, and then the doubled values of the original, 2 4 6. 
+
+3. What does the following code tell you about when the index is updated?
+
+```r
+for (i in 1:3) {
+  i <- i * 2
+  print(i) 
+}
+```
+
+```
+## [1] 2
+## [1] 4
+## [1] 6
+```
+
+```r
+#> [1] 2
+#> [1] 4
+#> [1] 6
+```
+Answer: I am not entirely sure what this question is asking, but here is my answer to what I think it is asking: i takes on a temporary value in the first line of code when the for loop is run. i is then updated on the second line of code, and this updated value is printed on the third line. When the loop restarts, returning to the first line of code, i is updated again as it changes to the next temporary value specified in the loop. This cycle continues for the length of the loop. 
