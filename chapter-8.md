@@ -142,10 +142,10 @@ withCallingHandlers(
 #> b
 #> c
 ```
-Answer: After one calling handler in a withCallingHandlers function, the code resets, so it prints the "b" then the first message of the nested function, then resets and prints "b" and the second message of the nested function.
+Answer: The first function prints "b" and then goes to the nested function. The first message of the nested function prints "a" and then calls the other messages starting with "b" and then going to "c"
 
 4. Read the source code for catch_cnd() and explain how it works.   
-Answer: It is a wrapper that captures the condition signalled while evaluating its argument
+Answer: It is a wrapper that captures the condition signaled while evaluating its argument
 
 5. How could you rewrite show_condition() to use a single handler?    
 Answer: 
@@ -154,13 +154,170 @@ Answer:
 show_condition <- function(code) {
   handler <- function(x = catch_cnd(code)) {
   tryCatch(
-    x = function(cnd) "x",
-    {
-      code
-      NULL
-    }
+    x[2]
   )
   }
 }
+
+show_condition(stop("!"))
+show_condition(10)
+show_condition(warning("?!"))
 ```
 
+# 8.5.4 Exercises
+
+1. Inside a package, it’s occasionally useful to check that a package is installed before using it. Write a function that checks if a package is installed (with requireNamespace("pkg", quietly = FALSE)) and if not, throws a custom condition that includes the package name in the metadata.   
+Answer:
+
+```r
+abort_no_package <- function(arg) {
+  msg <- glue::glue("package `{arg}` is not installed")
+  
+  
+  abort("error_no_package", 
+    message = msg, 
+    arg = arg
+  )
+}
+
+my_requirenamespace <- function(x, quietly = FALSE) {
+  if (!exists(x)) {
+    abort_no_package(x)
+  }
+
+
+requireNamespace(x, quietly = FALSE)
+}
+
+#my_requirenamespace("pkgs")
+#>error in 'abort_no_package()': package 'pkgs' is not installed
+```
+
+2. Inside a package you often need to stop with an error when something is not right. Other packages that depend on your package might be tempted to check these errors in their unit tests. How could you help these packages to avoid relying on the error message which is part of the user interface rather than the API and might change without notice?   
+Answer: You could create custom errors that have additional metadata so that packages could check for the metadata instead of the message. 
+
+#8.6.6 Exercises
+
+1. Create suppressConditions() that works like suppressMessages() and suppressWarnings() but suppresses everything. Think carefully about how you should handle errors.    
+Answer:
+
+```r
+suppressConditions <- function(expr){
+  tryCatch(
+    error = function(cnd) try(expr, silent = TRUE),
+    withCallingHandlers(
+    warning = function(cnd) 
+    if (inherits(cnd, "warning"))
+      tryInvokeRestart("muffleWarning"),
+    message = function(cnd)
+    if (inherits(cnd, "message"))
+      tryInvokeRestart("muffleMessage"),
+    expr
+  )
+  )
+}
+
+suppressConditions(message("a"))
+suppressConditions(warning("b"))
+suppressConditions(stop("c"))
+```
+
+```
+## Warning in doTryCatch(return(expr), name, parentenv, handler): restarting
+## interrupted promise evaluation
+```
+
+2. Compare the following two implementations of message2error(). What is the main advantage of withCallingHandlers() in this scenario? (Hint: look carefully at the traceback.)
+
+```r
+message2error <- function(code) {
+  withCallingHandlers(code, message = function(e) stop(e))
+}
+
+#message2error()
+
+message2error <- function(code) {
+  tryCatch(code, message = function(e) stop(e))
+}
+
+#message2error()
+```
+Answer: The version using withCallingHandlers printed the exact line of code where the error occurred in the traceback, whereas the version using TryCatch showed that is was an error in a TryCatch function but did not print the code as it was written, which could be confusing if TryCatch was used multiple times.   
+
+3. How would you modify the catch_cnds() definition if you wanted to recreate the original intermingling of warnings and messages?   
+Answer: 
+
+```r
+catch_cnds <- function(expr) {
+  conds <- list()
+  add_cond <- function(cnd) {
+    conds <<- append(conds, list(cnd))
+    cnd_muffle(cnd)
+  }
+  
+  withCallingHandlers(
+    condition = add_cond,
+    expr
+  )
+  
+  conds
+}
+
+catch_cnds({
+  inform("a")
+  warn("b")
+  inform("c")
+})
+```
+
+```
+## [[1]]
+## <message/rlang_message>
+## Message:
+## a
+## 
+## [[2]]
+## <warning/rlang_warning>
+## Warning:
+## b
+## 
+## [[3]]
+## <message/rlang_message>
+## Message:
+## c
+```
+
+4. Why is catching interrupts dangerous? Run this code to find out.
+
+```r
+bottles_of_beer <- function(i = 99) {
+  message(
+    "There are ", i, " bottles of beer on the wall, ", 
+    i, " bottles of beer."
+  )
+  while(i > 0) {
+    tryCatch(
+      Sys.sleep(1),
+      interrupt = function(err) {
+        i <<- i - 1
+        if (i > 0) {
+          message(
+            "Take one down, pass it around, ", i, 
+            " bottle", if (i > 1) "s", " of beer on the wall."
+          )
+        }
+      }
+    )
+  }
+  message(
+    "No more bottles of beer on the wall, ", 
+    "no more bottles of beer."
+  )
+}
+```
+Answer: 
+
+```r
+#bottles_of_beer()
+```
+I think the danger of catching interrupts is that the code isn't able to finish running
