@@ -27,7 +27,7 @@ force
 ```
 ## function (x) 
 ## x
-## <bytecode: 0x0000022c4084ac50>
+## <bytecode: 0x00000278f6e54c00>
 ## <environment: namespace:base>
 ```
 
@@ -129,7 +129,7 @@ m1(x)
 ```
 
 ```
-## [1] 6.661338e-18
+## [1] -1.665335e-17
 ```
 
 ```r
@@ -137,7 +137,7 @@ m2(x)
 ```
 
 ```
-## [1] 0.07992705
+## [1] 0.08144074
 ```
 
 5. What happens if you don’t use a closure? Make predictions, then verify with the code below.
@@ -193,4 +193,4 @@ counter3()
 #10.3.4 Exercises
 
 1. Compare and contrast ggplot2::label_bquote() with scales::number_format()    
-Answer: label_bquote() creates labels for rows and columns using plotmath expressions. label_number() forces numerical labels to be in decimal format. 
+Answer: label_bquote() creates labels for rows and columns using plotmath expressions. scales::numberformat() has two functions; label_number() and label_comma(). label_number() forces numerical labels to be in decimal format. you can set labels equal to one of these functions in ggplot in order have more control over label details. 
