@@ -28,7 +28,7 @@ force
 ```
 ## function (x) 
 ## x
-## <bytecode: 0x000001cbc4c04b90>
+## <bytecode: 0x0000027bdb08abe0>
 ## <environment: namespace:base>
 ```
 
@@ -130,7 +130,7 @@ m1(x)
 ```
 
 ```
-## [1] -8.881784e-18
+## [1] 1.776357e-17
 ```
 
 ```r
@@ -138,7 +138,7 @@ m2(x)
 ```
 
 ```
-## [1] 0.07289544
+## [1] 0.09203583
 ```
 
 5. What happens if you don’t use a closure? Make predictions, then verify with the code below.
@@ -247,7 +247,7 @@ mark(ll_poisson1(x))
 ## # A tibble: 1 × 6
 ##   expression          min   median `itr/sec` mem_alloc `gc/sec`
 ##   <bch:expr>     <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-## 1 ll_poisson1(x)    200ns    300ns  2831375.        0B     283.
+## 1 ll_poisson1(x)    200ns    300ns  2827212.        0B     283.
 ```
 
 ```r
@@ -258,7 +258,7 @@ mark(ll_poisson2(x))
 ## # A tibble: 1 × 6
 ##   expression          min   median `itr/sec` mem_alloc `gc/sec`
 ##   <bch:expr>     <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-## 1 ll_poisson2(x)    4.9µs    5.6µs   164995.      848B     16.5
+## 1 ll_poisson2(x)    4.9µs    5.6µs   164136.      848B     16.4
 ```
 Answer: Without input, ll_poisson2 saves 20 micro-seconds. With x of length 1, ll_poisson1 saves 10 milliseconds. With x of length 100, ll_poisson1 saves 60 milliseconds.
 
@@ -298,11 +298,5 @@ env_bind(globalenv(), !!!funs)
 mean <- function(x) stop("Hi!") 
 #mean(x)
 env_unbind(globalenv(), names(funs))
-
-rm(mean)
-```
-
-```
-## Warning in rm(mean): object 'mean' not found
 ```
 Answer: Neither one is actually returning the mean when I run the function and instead just returns an error with the stop message. When using attach, the mean function is saved in the global environment even after funs is detached, whereas the function does not stay in the global environment after env_unbind(globalenv(), names(funs))
