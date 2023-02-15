@@ -14,6 +14,7 @@ library(rlang)
 library(ggplot2)
 library(scales)
 library(e1071)
+library(bench)
 ```
 
 #10.2.6 Exercises
@@ -27,7 +28,7 @@ force
 ```
 ## function (x) 
 ## x
-## <bytecode: 0x00000218a0afac50>
+## <bytecode: 0x000001cbc4c04b90>
 ## <environment: namespace:base>
 ```
 
@@ -129,7 +130,7 @@ m1(x)
 ```
 
 ```
-## [1] 2.664535e-17
+## [1] -8.881784e-18
 ```
 
 ```r
@@ -137,7 +138,7 @@ m2(x)
 ```
 
 ```
-## [1] 0.08551449
+## [1] 0.07289544
 ```
 
 5. What happens if you don’t use a closure? Make predictions, then verify with the code below.
@@ -194,3 +195,114 @@ counter3()
 
 1. Compare and contrast ggplot2::label_bquote() with scales::number_format()    
 Answer: both of these provide functions that label can be set equal to in ggplot in order to have finer control of labels. label_bquote() creates labels for rows and columns using plotmath expressions. scales::numberformat() has two functions: label_number() and label_comma(). label_number() forces numerical labels to be in decimal format and has many options for formating labels, including adding prefixes or suffixes, changing the scale, and selecting how certain characters are displayed. 
+
+#10.4.4 Exercises
+
+1. In boot_model(), why don’t I need to force the evaluation of df or model?    
+Answer: I think because they are used in the first part of the function, so they are evaluated regardless. 
+
+2. Why might you formulate the Box-Cox transformation like this?
+
+```r
+boxcox3 <- function(x) {
+  function(lambda) {
+    if (lambda == 0) {
+      log(x)
+    } else {
+      (x ^ lambda - 1) / lambda
+    }
+  }  
+}
+```
+Answer: So that you can use the created function as input for any other function that accepts a transformation function     
+
+3. Why don’t you need to worry that boot_permute() stores a copy of the data inside the function that it generates?   
+Answer: rm(mod) is used so there is less to store   
+
+4. How much time does ll_poisson2() save compared to ll_poisson1()? Use bench::mark() to see how much faster the optimisation occurs. How does changing the length of x change the results?
+
+```r
+ll_poisson1 <- function(x) {
+  n <- length(x)
+
+  function(lambda) {
+    log(lambda) * sum(x) - n * lambda - sum(lfactorial(x))
+  }
+}
+
+ll_poisson2 <- function(x) {
+  n <- length(x)
+  sum_x <- sum(x)
+  c <- sum(lfactorial(x))
+
+  function(lambda) {
+    log(lambda) * sum_x - n * lambda - c
+  }
+}
+x <- c(1:100)
+mark(ll_poisson1(x))
+```
+
+```
+## # A tibble: 1 × 6
+##   expression          min   median `itr/sec` mem_alloc `gc/sec`
+##   <bch:expr>     <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
+## 1 ll_poisson1(x)    200ns    300ns  2831375.        0B     283.
+```
+
+```r
+mark(ll_poisson2(x))
+```
+
+```
+## # A tibble: 1 × 6
+##   expression          min   median `itr/sec` mem_alloc `gc/sec`
+##   <bch:expr>     <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
+## 1 ll_poisson2(x)    4.9µs    5.6µs   164995.      848B     16.5
+```
+Answer: Without input, ll_poisson2 saves 20 micro-seconds. With x of length 1, ll_poisson1 saves 10 milliseconds. With x of length 100, ll_poisson1 saves 60 milliseconds.
+
+#10.5.1 Exercises
+
+1. Which of the following commands is equivalent to with(x, f(z))?    
+Answer: c. x$f(z)   
+
+2. Compare and contrast the effects of env_bind() vs. attach() for the following code.
+
+```r
+funs <- list(
+  mean = function(x) mean(x, na.rm = TRUE),
+  sum = function(x) sum(x, na.rm = TRUE)
+)
+
+x <- c(1:5)
+
+attach(funs)
+```
+
+```
+## The following objects are masked from package:base:
+## 
+##     mean, sum
+```
+
+```r
+#> The following objects are masked from package:base:
+#> 
+#>     mean, sum
+mean <- function(x) stop("Hi!")
+#mean(x)
+detach(funs)
+
+env_bind(globalenv(), !!!funs)
+mean <- function(x) stop("Hi!") 
+#mean(x)
+env_unbind(globalenv(), names(funs))
+
+rm(mean)
+```
+
+```
+## Warning in rm(mean): object 'mean' not found
+```
+Answer: Neither one is actually returning the mean when I run the function and instead just returns an error with the stop message. When using attach, the mean function is saved in the global environment even after funs is detached, whereas the function does not stay in the global environment after env_unbind(globalenv(), names(funs))
