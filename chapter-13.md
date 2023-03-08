@@ -111,7 +111,7 @@ as.data.frame.data.frame
 ##     }
 ##     x
 ## }
-## <bytecode: 0x00000259a81be8f0>
+## <bytecode: 0x000001fc031a4638>
 ## <environment: namespace:base>
 ```
 Removes class attributes other than data.frame
@@ -279,6 +279,20 @@ new_Date(c(-1, 0, 1))
 #> [1] "1969-12-31" "1970-01-01" "1970-01-02"
 ```
 
+
+```r
+new_factor <- function(x = integer(), levels = character()) {
+  stopifnot(is.integer(x))
+  stopifnot(is.character(levels))
+
+  structure(
+    x,
+    levels = levels,
+    class = "factor"
+  )
+}
+```
+
 Validators
 
 
@@ -347,10 +361,10 @@ new_data.frame <- function(..., row.names=NULL, check.names=TRUE) {
 2. Enhance my factor() helper to have better behaviour when one or more values is not found in levels. What does base::factor() do in this situation?
 
 ```r
-#factor <- function(x = character(), levels = unique(x)) {
-#  ind <- match(x, levels)
-#  validate_factor(new_factor(ind, levels))
-#}
+factor <- function(x = character(), levels = unique(x)) {
+  ind <- match(x, levels)
+  validate_factor(new_factor(ind, levels))
+}
 
 factor(c("a", "a", "b"))
 ```
@@ -373,46 +387,10 @@ factor
 ```
 
 ```
-## function (x = character(), levels, labels = levels, exclude = NA, 
-##     ordered = is.ordered(x), nmax = NA) 
-## {
-##     if (is.null(x)) 
-##         x <- character()
-##     nx <- names(x)
-##     if (missing(levels)) {
-##         y <- unique(x, nmax = nmax)
-##         ind <- order(y)
-##         levels <- unique(as.character(y)[ind])
-##     }
-##     force(ordered)
-##     if (!is.character(x)) 
-##         x <- as.character(x)
-##     levels <- levels[is.na(match(levels, exclude))]
-##     f <- match(x, levels)
-##     if (!is.null(nx)) 
-##         names(f) <- nx
-##     if (missing(labels)) {
-##         levels(f) <- as.character(levels)
-##     }
-##     else {
-##         nlab <- length(labels)
-##         if (nlab == length(levels)) {
-##             nlevs <- unique(xlevs <- as.character(labels))
-##             at <- attributes(f)
-##             at$levels <- nlevs
-##             f <- match(xlevs, nlevs)[f]
-##             attributes(f) <- at
-##         }
-##         else if (nlab == 1L) 
-##             levels(f) <- paste0(labels, seq_along(levels))
-##         else stop(gettextf("invalid 'labels'; length %d should be 1 or %d", 
-##             nlab, length(levels)), domain = NA)
-##     }
-##     class(f) <- c(if (ordered) "ordered", "factor")
-##     f
+## function(x = character(), levels = unique(x)) {
+##   ind <- match(x, levels)
+##   validate_factor(new_factor(ind, levels))
 ## }
-## <bytecode: 0x00000259a48bc2e8>
-## <environment: namespace:base>
 ```
 It coerces data types whereas my_factor only checks data types    
 
