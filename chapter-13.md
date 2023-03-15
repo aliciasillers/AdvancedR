@@ -10,6 +10,22 @@ date: "2023-02-27"
 
 ```r
 library(sloop)
+library(tidyverse)
+```
+
+```
+## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+## ✔ ggplot2 3.4.1      ✔ purrr   1.0.1 
+## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
+## ✔ tidyr   1.3.0      ✔ stringr 1.5.0 
+## ✔ readr   2.1.4      ✔ forcats 1.0.0 
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+```
+
+```r
+library(purrr)
 ```
 
 
@@ -111,7 +127,7 @@ as.data.frame.data.frame
 ##     }
 ##     x
 ## }
-## <bytecode: 0x000001fc031a4638>
+## <bytecode: 0x00000243d4d54b88>
 ## <environment: namespace:base>
 ```
 Removes class attributes other than data.frame
@@ -363,6 +379,7 @@ new_data.frame <- function(..., row.names=NULL, check.names=TRUE) {
 ```r
 factor <- function(x = character(), levels = unique(x)) {
   ind <- match(x, levels)
+  #stopifnot(ind)
   validate_factor(new_factor(ind, levels))
 }
 
@@ -389,6 +406,7 @@ factor
 ```
 ## function(x = character(), levels = unique(x)) {
 ##   ind <- match(x, levels)
+##   #stopifnot(ind)
 ##   validate_factor(new_factor(ind, levels))
 ## }
 ```
@@ -399,4 +417,429 @@ Answer: the "contrasts" attribute can be a matrix or function. It determines the
 
 5. Read the documentation for utils::as.roman(). How would you write a constructor for this class? Does it need a validator? What might a helper do?      
 Answer: the constructor would check that the input is one of the correct types: a numeric or character vector of arabic or roman numerals. Then it would define the integer equivalent and return the correct structure with class = roman. 
+
+#13.4 Notes
+
+##generics and methods
+method dispatch is finding the specific implementation for a class, and it is performed by UseMethod(), which takes the name of a generic function and, optionally, the argument to use for method dispatch.    
+
+##method dispatch
+UseMethod() creates a vector of method names and looks for each potential method in turn. s3_dispatch() lists all possible methods. 
+
+
+```r
+x <- matrix(1:10, nrow = 2)
+s3_dispatch(mean(x))
+```
+
+```
+##    mean.matrix
+##    mean.integer
+##    mean.numeric
+## => mean.default
+```
+
+```r
+#>    mean.matrix
+#>    mean.integer
+#>    mean.numeric
+#> => mean.default
+
+s3_dispatch(sum(Sys.time()))
+```
+
+```
+##    sum.POSIXct
+##    sum.POSIXt
+##    sum.default
+## => Summary.POSIXct
+##    Summary.POSIXt
+##    Summary.default
+## -> sum (internal)
+```
+
+```r
+#>    sum.POSIXct
+#>    sum.POSIXt
+#>    sum.default
+#> => Summary.POSIXct
+#>    Summary.POSIXt
+#>    Summary.default
+#> -> sum (internal)
+```
+
+##finding methods
+s3_methods_generic() and s3_methods_class() give you all the methods defined for a generic or associated with a class.
+
+
+```r
+s3_methods_generic("mean")
+```
+
+```
+## # A tibble: 7 × 4
+##   generic class      visible source             
+##   <chr>   <chr>      <lgl>   <chr>              
+## 1 mean    Date       TRUE    base               
+## 2 mean    default    TRUE    base               
+## 3 mean    difftime   TRUE    base               
+## 4 mean    POSIXct    TRUE    base               
+## 5 mean    POSIXlt    TRUE    base               
+## 6 mean    quosure    FALSE   registered S3method
+## 7 mean    vctrs_vctr FALSE   registered S3method
+```
+
+```r
+#> # A tibble: 7 x 4
+#>   generic class      visible source             
+#>   <chr>   <chr>      <lgl>   <chr>              
+#> 1 mean    Date       TRUE    base               
+#> 2 mean    default    TRUE    base               
+#> 3 mean    difftime   TRUE    base               
+#> 4 mean    POSIXct    TRUE    base               
+#> 5 mean    POSIXlt    TRUE    base               
+#> 6 mean    quosure    FALSE   registered S3method
+#> 7 mean    vctrs_vctr FALSE   registered S3method
+
+s3_methods_class("ordered")
+```
+
+```
+## # A tibble: 6 × 4
+##   generic       class   visible source             
+##   <chr>         <chr>   <lgl>   <chr>              
+## 1 as.data.frame ordered TRUE    base               
+## 2 Ops           ordered TRUE    base               
+## 3 relevel       ordered FALSE   registered S3method
+## 4 scale_type    ordered FALSE   registered S3method
+## 5 Summary       ordered TRUE    base               
+## 6 type_sum      ordered FALSE   registered S3method
+```
+
+```r
+#> # A tibble: 4 x 4
+#>   generic       class   visible source             
+#>   <chr>         <chr>   <lgl>   <chr>              
+#> 1 as.data.frame ordered TRUE    base               
+#> 2 Ops           ordered TRUE    base               
+#> 3 relevel       ordered FALSE   registered S3method
+#> 4 Summary       ordered TRUE    base
+```
+
+##creating methods
+rules for creating methods: only write a method if you own the generic or class; and a method must have the same arguments as its generic, unless the generic has ..., in which case the method can take arbitrary additional arguments.
+
+#13.4 Exercises
+
+1. Read the source code for t() and t.test() and confirm that t.test() is an S3 generic and not an S3 method. What happens if you create an object with class test and call t() with it? Why?   
+
+```r
+getAnywhere(t)
+```
+
+```
+## A single object matching 't' was found
+## It was found in the following places
+##   package:base
+##   namespace:base
+## with value
+## 
+## function (x) 
+## UseMethod("t")
+## <bytecode: 0x00000243d4b9a288>
+## <environment: namespace:base>
+```
+
+```r
+getAnywhere(t.test)
+```
+
+```
+## A single object matching 't.test' was found
+## It was found in the following places
+##   package:stats
+##   registered S3 method for t from namespace stats
+##   namespace:stats
+## with value
+## 
+## function (x, ...) 
+## UseMethod("t.test")
+## <bytecode: 0x00000243cf884490>
+## <environment: namespace:stats>
+```
+
+```r
+s3_methods_generic("t.test")
+```
+
+```
+## # A tibble: 2 × 4
+##   generic class   visible source             
+##   <chr>   <chr>   <lgl>   <chr>              
+## 1 t.test  default FALSE   registered S3method
+## 2 t.test  formula FALSE   registered S3method
+```
+
+```r
+s3_methods_class("t.test")
+```
+
+```
+## # A tibble: 0 × 4
+## # … with 4 variables: generic <chr>, class <chr>, visible <lgl>, source <chr>
+```
+
+```r
+x <- structure(x, class = "test")
+t(x)
+```
+
+```
+##      [,1] [,2]
+## [1,]    1    2
+## [2,]    3    4
+## [3,]    5    6
+## [4,]    7    8
+## [5,]    9   10
+## attr(,"class")
+## [1] "test"
+```
+
+```r
+s3_dispatch(t(x))
+```
+
+```
+## => t.test
+##  * t.default
+```
+Answer: Calling t(x) printed the types of attributes belonging to x and what the class attribute is. I'm not sure why, but maybe it has something to do with not having a method for the class test    
+
+2. What generics does the table class have methods for?
+
+```r
+s3_methods_class("table")
+```
+
+```
+## # A tibble: 11 × 4
+##    generic       class visible source             
+##    <chr>         <chr> <lgl>   <chr>              
+##  1 [             table TRUE    base               
+##  2 aperm         table TRUE    base               
+##  3 as.data.frame table TRUE    base               
+##  4 as_tibble     table FALSE   registered S3method
+##  5 Axis          table FALSE   registered S3method
+##  6 lines         table FALSE   registered S3method
+##  7 plot          table FALSE   registered S3method
+##  8 points        table FALSE   registered S3method
+##  9 print         table TRUE    base               
+## 10 summary       table TRUE    base               
+## 11 tail          table FALSE   registered S3method
+```
+
+3. What generics does the ecdf class have methods for?
+
+```r
+s3_methods_class("ecdf")
+```
+
+```
+## # A tibble: 4 × 4
+##   generic  class visible source             
+##   <chr>    <chr> <lgl>   <chr>              
+## 1 plot     ecdf  TRUE    stats              
+## 2 print    ecdf  FALSE   registered S3method
+## 3 quantile ecdf  FALSE   registered S3method
+## 4 summary  ecdf  FALSE   registered S3method
+```
+
+4. Which base generic has the greatest number of defined methods?
+
+```r
+#make list of generics
+#get lengths of methods
+#max length of methods
+
+fxns <- tibble(fn_name={ls("package:base")}) %>%
+  filter(map_lgl(fn_name, ~ {get(.) %>% is_function()})) %>%
+  filter(map_lgl(fn_name, is_s3_generic))
+
+getnum <- function(x){
+  length(methods(x))
+}
+
+methodnum <- map_dbl(fxns$fn_name, getnum)
+```
+
+```r
+fxns <- cbind(fxns, methodnum)
+```
+
+```r
+maxmethods <- fxns %>% filter(fxns$methodnum == max(methodnum))
+maxmethods[,1]
+```
+
+```
+## [1] "print"
+```
+Answer: print has the greatest number of defined methods    
+
+5. Carefully read the documentation for UseMethod() and explain why the following code returns the results that it does. What two usual rules of function evaluation does UseMethod() violate?
+
+```r
+g <- function(x) {
+  x <- 10
+  y <- 10
+  UseMethod("g")
+}
+g.default <- function(x) c(x = x, y = y)
+
+x <- 1
+y <- 1
+g(x)
+```
+
+```
+##  x  y 
+##  1 10
+```
+
+```r
+#>  x  y 
+#>  1 10
+```
+Answer: It seems like x is 1 because it is an argument is g.default and gets the value from the global environment, whereas y is 10 because this value is defined in the function body. I think getting the value of x from the parent environment over the function body violates the rule of name masking. It has this behavior because of the method used, which sets x back to the argument value of x.    
+
+6. What are the arguments to [? Why is this a hard question to answer?    
+Answer: Arguments for extract/replace operators are x, object, i, j, name, drop, exact, value. If I am answering the question correctly, I'm not sure why it is a hard question to answer, except maybe that you have to put the [ in quotation marks when using the command ?']' or else R thinks there is a syntax error.
+
+#13.5 Notes
+
+Record style objects use a list of equal-length vectors to represent individual components of an object. Record style classes override length() and subsetting methods to conceal this implementation detail.   
+
+
+```r
+x <- as.POSIXlt(ISOdatetime(2020, 1, 1, 0, 0, 1:3))
+x
+```
+
+```
+## [1] "2020-01-01 00:00:01 PST" "2020-01-01 00:00:02 PST"
+## [3] "2020-01-01 00:00:03 PST"
+```
+
+```r
+#> [1] "2020-01-01 00:00:01 UTC" "2020-01-01 00:00:02 UTC"
+#> [3] "2020-01-01 00:00:03 UTC"
+
+length(x)
+```
+
+```
+## [1] 3
+```
+
+```r
+#> [1] 3
+length(unclass(x))
+```
+
+```
+## [1] 11
+```
+
+```r
+#> [1] 9
+
+x[[1]] # the first date time
+```
+
+```
+## [1] "2020-01-01 00:00:01 PST"
+```
+
+```r
+#> [1] "2020-01-01 00:00:01 UTC"
+unclass(x)[[1]] # the first component, the number of seconds
+```
+
+```
+## [1] 1 2 3
+```
+
+```r
+#> [1] 1 2 3
+```
+
+Data frames use lists of equal length vectors but are conceptually two dimensional, and the individual components are readily exposed to the user. The number of observations is the number of rows, not the length.
+
+
+```r
+x <- data.frame(x = 1:100, y = 1:100)
+length(x)
+```
+
+```
+## [1] 2
+```
+
+```r
+#> [1] 2
+nrow(x)
+```
+
+```
+## [1] 100
+```
+
+```r
+#> [1] 100
+```
+
+Scalar objects typically use a list to represent a single thing. They can also be built on top of functions, calls, and environments.
+
+
+```r
+mod <- lm(mpg ~ wt, data = mtcars)
+length(mod)
+```
+
+```
+## [1] 12
+```
+
+```r
+#> [1] 12
+```
+
+#13.5 Exercises
+
+1. Categorise the objects returned by lm(), factor(), table(), as.Date(), as.POSIXct() ecdf(), ordered(), I() into the styles described above.   
+Answer:   
+lm() -> scalar    
+factor() -> vector    
+table() -> data frame   
+as.Date() -> vector   
+as.POSIXct() -> record    
+ecdf() -> scalar    
+ordered() -> vector   
+I() -> vector   
+
+2. What would a constructor function for lm objects, new_lm(), look like? Use ?lm and experimentation to figure out the required fields and their types.
+
+```r
+new_lm <- function(f, method = "qr", x = FALSE, y = FALSE, qr = TRUE, singular.ok = TRUE, model = TRUE){
+  stopifnot(class(f) != "formula")
+  stopifnot(method = "qr")
+  stopifnot(is.logical(model))
+  stopifnot(is.logical(x))
+  stopifnot(is.logical(y))
+  stopifnot(is.logical(qr))
+  stopifnot(is.logical(singular.ok))
+  structure(x, method, model, x, y, qr, singular.ok, class = "formula")
+}
+```
+
 
