@@ -127,7 +127,7 @@ as.data.frame.data.frame
 ##     }
 ##     x
 ## }
-## <bytecode: 0x000001d7538c9988>
+## <bytecode: 0x000001e7ee551810>
 ## <environment: namespace:base>
 ```
 Removes class attributes other than data.frame
@@ -546,7 +546,7 @@ getAnywhere(t)
 ## 
 ## function (x) 
 ## UseMethod("t")
-## <bytecode: 0x000001d753700df8>
+## <bytecode: 0x000001e7ee386ef0>
 ## <environment: namespace:base>
 ```
 
@@ -564,7 +564,7 @@ getAnywhere(t.test)
 ## 
 ## function (x, ...) 
 ## UseMethod("t.test")
-## <bytecode: 0x000001d74e3f2430>
+## <bytecode: 0x000001e7e90b94e0>
 ## <environment: namespace:stats>
 ```
 
@@ -1143,7 +1143,7 @@ s3_dispatch(length(x2))
 #>    length.default
 #>  * length (internal)
 ```
-
+Answer: Different methods are being called. In the first, the internal length method is being called, while in the second example, in which the class is defined as "integer", length.integer method is being called. The first example also has a length.numeric method while the second does not. 
 
 2. What classes have a method for the Math group generic in base R? Read the source code. How do the methods work?
 
