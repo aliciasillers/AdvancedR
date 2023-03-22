@@ -127,7 +127,7 @@ as.data.frame.data.frame
 ##     }
 ##     x
 ## }
-## <bytecode: 0x000002260ae93348>
+## <bytecode: 0x000001d7538c9988>
 ## <environment: namespace:base>
 ```
 Removes class attributes other than data.frame
@@ -546,7 +546,7 @@ getAnywhere(t)
 ## 
 ## function (x) 
 ## UseMethod("t")
-## <bytecode: 0x000002260ac8a7d8>
+## <bytecode: 0x000001d753700df8>
 ## <environment: namespace:base>
 ```
 
@@ -564,7 +564,7 @@ getAnywhere(t.test)
 ## 
 ## function (x, ...) 
 ## UseMethod("t.test")
-## <bytecode: 0x0000022605a6f3b0>
+## <bytecode: 0x000001d74e3f2430>
 ## <environment: namespace:stats>
 ```
 
@@ -1063,12 +1063,88 @@ s3_class(matrix(1:5))
 ```r
 #> [1] "matrix"  "integer" "numeric"
 ```
-s3_class() will return the implicit class 
+s3_class() will return the implicit class     
+
+internal generics do not call UseMethod() and instead call the C functions DispatchGroup() or DispatchOrEval(). s3_dispatch() shows internal generics by including the name of the generic followed by (internal):
+
+```r
+s3_dispatch(Sys.time()[1])
+```
+
+```
+## => [.POSIXct
+##    [.POSIXt
+##    [.default
+## -> [ (internal)
+```
+
+```r
+#> => [.POSIXct
+#>    [.POSIXt
+#>    [.default
+#> -> [ (internal)
+```
+
 
 #13.7 Exercises
 
-1. 
+1. Explain the differences in dispatch below:
 
-2.
+```r
+length.integer <- function(x) 10
 
-3.
+x1 <- 1:5
+class(x1)
+```
+
+```
+## [1] "integer"
+```
+
+```r
+#> [1] "integer"
+s3_dispatch(length(x1))
+```
+
+```
+##  * length.integer
+##    length.numeric
+##    length.default
+## => length (internal)
+```
+
+```r
+#>  * length.integer
+#>    length.numeric
+#>    length.default
+#> => length (internal)
+
+x2 <- structure(x1, class = "integer")
+class(x2)
+```
+
+```
+## [1] "integer"
+```
+
+```r
+#> [1] "integer"
+s3_dispatch(length(x2))
+```
+
+```
+## => length.integer
+##    length.default
+##  * length (internal)
+```
+
+```r
+#> => length.integer
+#>    length.default
+#>  * length (internal)
+```
+
+
+2. What classes have a method for the Math group generic in base R? Read the source code. How do the methods work?
+
+3. Math.difftime() is more complicated than I described. Why?
