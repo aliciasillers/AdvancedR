@@ -127,7 +127,7 @@ as.data.frame.data.frame
 ##     }
 ##     x
 ## }
-## <bytecode: 0x000001e7ee551810>
+## <bytecode: 0x0000028db4c53860>
 ## <environment: namespace:base>
 ```
 Removes class attributes other than data.frame
@@ -546,7 +546,7 @@ getAnywhere(t)
 ## 
 ## function (x) 
 ## UseMethod("t")
-## <bytecode: 0x000001e7ee386ef0>
+## <bytecode: 0x0000028db4aa0fa0>
 ## <environment: namespace:base>
 ```
 
@@ -564,7 +564,7 @@ getAnywhere(t.test)
 ## 
 ## function (x, ...) 
 ## UseMethod("t.test")
-## <bytecode: 0x000001e7e90b94e0>
+## <bytecode: 0x0000028daf7693f0>
 ## <environment: namespace:stats>
 ```
 
@@ -1146,5 +1146,24 @@ s3_dispatch(length(x2))
 Answer: Different methods are being called. In the first, the internal length method is being called, while in the second example, in which the class is defined as "integer", length.integer method is being called. The first example also has a length.numeric method while the second does not. 
 
 2. What classes have a method for the Math group generic in base R? Read the source code. How do the methods work?
+
+```r
+s3_methods_generic("Math")
+```
+
+```
+## # A tibble: 8 × 4
+##   generic class      visible source             
+##   <chr>   <chr>      <lgl>   <chr>              
+## 1 Math    data.frame TRUE    base               
+## 2 Math    Date       TRUE    base               
+## 3 Math    difftime   TRUE    base               
+## 4 Math    factor     TRUE    base               
+## 5 Math    POSIXt     TRUE    base               
+## 6 Math    quosure    FALSE   registered S3method
+## 7 Math    vctrs_sclr FALSE   registered S3method
+## 8 Math    vctrs_vctr FALSE   registered S3method
+```
+
 
 3. Math.difftime() is more complicated than I described. Why?
