@@ -127,7 +127,7 @@ as.data.frame.data.frame
 ##     }
 ##     x
 ## }
-## <bytecode: 0x00000243d4d54b88>
+## <bytecode: 0x000002260ae93348>
 ## <environment: namespace:base>
 ```
 Removes class attributes other than data.frame
@@ -546,7 +546,7 @@ getAnywhere(t)
 ## 
 ## function (x) 
 ## UseMethod("t")
-## <bytecode: 0x00000243d4b9a288>
+## <bytecode: 0x000002260ac8a7d8>
 ## <environment: namespace:base>
 ```
 
@@ -564,7 +564,7 @@ getAnywhere(t.test)
 ## 
 ## function (x, ...) 
 ## UseMethod("t.test")
-## <bytecode: 0x00000243cf884490>
+## <bytecode: 0x0000022605a6f3b0>
 ## <environment: namespace:stats>
 ```
 
@@ -842,4 +842,233 @@ new_lm <- function(f, method = "qr", x = FALSE, y = FALSE, qr = TRUE, singular.o
 }
 ```
 
+#13.6 Notes
 
+Classes can be character vectors. R checks each class in order until it finds one for which there is a method. Subclasses are listed before superclasses.
+
+Recommended rules for subclasses and superclasses: They should be the same base type, and the attributes of the subclass should be a superset of the attributes for the superclass
+
+
+```r
+new_secret <- function(x = double()) {
+  stopifnot(is.double(x))
+  structure(x, class = "secret")
+}
+
+print.secret <- function(x, ...) {
+  print(strrep("x", nchar(x)))
+  invisible(x)
+}
+
+x <- new_secret(c(15, 1, 456))
+x
+```
+
+```
+## [1] "xx"  "x"   "xxx"
+```
+
+```r
+#> [1] "xx"  "x"   "xxx"
+```
+
+
+```r
+`[.secret` <- function(x, i) {
+  new_secret(NextMethod())
+}
+x[1]
+```
+
+```
+## [1] "xx"
+```
+
+```r
+#> [1] "xx"
+```
+
+
+```r
+s3_dispatch(x[1])
+```
+
+```
+## => [.secret
+##    [.default
+## -> [ (internal)
+```
+
+```r
+#> => [.secret
+#>    [.default
+#> -> [ (internal)
+```
+The => indicates that [.secret is called, but that NextMethod() delegates work to the underlying internal [ method, as shown by the ->.   
+
+To allow subclasses, the parent constructor needs to have ... and class arguments:
+
+```r
+new_secret <- function(x, ..., class = character()) {
+  stopifnot(is.double(x))
+
+  structure(
+    x,
+    ...,
+    class = c(class, "secret")
+  )
+}
+```
+
+vctrs::vec_restore() generic takes two inputs: an object which has lost subclass information, and a template object to use for restoration. Typically vec_restore() methods are quite simple: you just call the constructor with appropriate arguments:
+
+```r
+vec_restore.secret <- function(x, to, ...) new_secret(x)
+vec_restore.supersecret <- function(x, to, ...) new_supersecret(x)
+```
+
+
+```r
+`[.secret` <- function(x, ...) {
+  vctrs::vec_restore(NextMethod(), x)
+}
+x[1:3]
+```
+
+```
+## [1] "xx"  "x"   "xxx"
+```
+
+If you build your class using the tools provided by the vctrs package, [ will gain this behaviour automatically. You will only need to provide your own [ method if you use attributes that depend on the data or want non-standard subsetting behaviour. 
+
+#13.6 Exercises
+
+1. How does [.Date support subclasses? How does it fail to support subclasses?
+
+```r
+s3_methods_class("Date")
+```
+
+```
+## # A tibble: 46 × 4
+##    generic class visible source             
+##    <chr>   <chr> <lgl>   <chr>              
+##  1 -       Date  TRUE    base               
+##  2 !=      Date  FALSE   registered S3method
+##  3 [       Date  TRUE    base               
+##  4 [[      Date  TRUE    base               
+##  5 [<-     Date  TRUE    base               
+##  6 +       Date  TRUE    base               
+##  7 <       Date  FALSE   registered S3method
+##  8 <=      Date  FALSE   registered S3method
+##  9 ==      Date  FALSE   registered S3method
+## 10 >       Date  FALSE   registered S3method
+## # … with 36 more rows
+```
+
+```r
+attributes(date)
+```
+
+```
+## NULL
+```
+
+
+2. R has two classes for representing date time data, POSIXct and POSIXlt, which both inherit from POSIXt. Which generics have different behaviours for the two classes? Which generics share the same behaviour?
+
+```r
+s3_methods_class("POSIXct")
+```
+
+```
+## # A tibble: 19 × 4
+##    generic       class   visible source             
+##    <chr>         <chr>   <lgl>   <chr>              
+##  1 [             POSIXct TRUE    base               
+##  2 [[            POSIXct TRUE    base               
+##  3 [<-           POSIXct TRUE    base               
+##  4 as.data.frame POSIXct TRUE    base               
+##  5 as.Date       POSIXct TRUE    base               
+##  6 as.list       POSIXct TRUE    base               
+##  7 as.POSIXlt    POSIXct TRUE    base               
+##  8 c             POSIXct TRUE    base               
+##  9 format        POSIXct TRUE    base               
+## 10 full_seq      POSIXct FALSE   registered S3method
+## 11 length<-      POSIXct TRUE    base               
+## 12 mean          POSIXct TRUE    base               
+## 13 print         POSIXct TRUE    base               
+## 14 rep           POSIXct TRUE    base               
+## 15 split         POSIXct TRUE    base               
+## 16 summary       POSIXct TRUE    base               
+## 17 Summary       POSIXct TRUE    base               
+## 18 weighted.mean POSIXct FALSE   registered S3method
+## 19 xtfrm         POSIXct TRUE    base
+```
+
+```r
+s3_methods_class("POSIXlt")
+```
+
+```
+## # A tibble: 29 × 4
+##    generic       class   visible source
+##    <chr>         <chr>   <lgl>   <chr> 
+##  1 [             POSIXlt TRUE    base  
+##  2 [[            POSIXlt TRUE    base  
+##  3 [[<-          POSIXlt TRUE    base  
+##  4 [<-           POSIXlt TRUE    base  
+##  5 anyNA         POSIXlt TRUE    base  
+##  6 as.data.frame POSIXlt TRUE    base  
+##  7 as.Date       POSIXlt TRUE    base  
+##  8 as.double     POSIXlt TRUE    base  
+##  9 as.list       POSIXlt TRUE    base  
+## 10 as.matrix     POSIXlt TRUE    base  
+## # … with 19 more rows
+```
+
+
+3. What do you expect this code to return? What does it actually return? Why?
+
+```r
+generic2 <- function(x) UseMethod("generic2")
+generic2.a1 <- function(x) "a1"
+generic2.a2 <- function(x) "a2"
+generic2.b <- function(x) {
+  class(x) <- "a1"
+  NextMethod()
+}
+
+generic2(structure(list(), class = c("b", "a2")))
+```
+
+```
+## [1] "a2"
+```
+
+
+#13.7 Notes
+
+Dispatch occurs on the implicit class, which has three components: the string "array" or "matrix", the result of typeof(), and the string "numeric" if object is int or dbl.
+
+
+```r
+s3_class(matrix(1:5))
+```
+
+```
+## [1] "matrix"  "integer" "numeric"
+```
+
+```r
+#> [1] "matrix"  "integer" "numeric"
+```
+s3_class() will return the implicit class 
+
+#13.7 Exercises
+
+1. 
+
+2.
+
+3.
