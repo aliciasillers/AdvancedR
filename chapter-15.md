@@ -320,5 +320,27 @@ setClass("Test")
 ```
 Answer: It seems to allow you to create the class but not to add objects to the class
 
-3. Imagine you were going to reimplement factors, dates, and data frames in S4. Sketch out the setClass() calls that you would use to define the classes. Think about appropriate slots and prototype.    
-Answer: 
+3. Imagine you were going to reimplement factors, dates, and data frames in S4. Sketch out the setClass() calls that you would use to define the classes. Think about appropriate slots and prototype.
+
+```r
+?date
+```
+
+
+```r
+setClass("Factor2", 
+  slots = c(
+    x = "character",
+    levels = "numeric",
+    labels = "ANY"
+  ), 
+  prototype = list(
+    x = NA_character_,
+    levels = NA_real_,
+    labels = levels
+  )
+)
+
+#error for date: "date: has a sealed class definition and cannot be redefined"
+```
+
