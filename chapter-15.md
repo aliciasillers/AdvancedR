@@ -340,5 +340,16 @@ setClass("Factor2",
     labels = levels
   )
 )
+
+setClass("DataFrame",
+  slots = c(
+    data = "list",
+    row.names = "character"
+    ),
+  prototype = list(
+    data = list(),
+    row.names = NA_character_
+  )
+)
 ```
 
