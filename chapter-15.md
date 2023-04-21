@@ -347,12 +347,3 @@ setClass("DataFrame",
 
 
 
-```r
-test3 <- "string"
-if(test3 != "string" | test3 != "string2") {FALSE} else {TRUE}
-```
-
-```
-## [1] FALSE
-```
-
