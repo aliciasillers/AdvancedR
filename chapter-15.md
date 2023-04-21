@@ -281,11 +281,13 @@ setClass("Person",
 )
 
 setValidity("Person", function(object) {
-  if (length(object@name) != length(object@role)) {
+  if (object@role != "aut" | object@role != "com" | object@role != "cph" | object@role != "cre" | object@role != "ctb" | object@role != "ctr" | object@role != "dtc" | object@role != "fnd" | object@role != "rev" | object@role != "ths" | object@role != "trl") {
+    "role must be one of the following values: aut, com, cph, cre, ctb, ctr, dtc, fnd, rev, ths, or trl"
+  } else if (length(object@name) != length(object@role)) {
     "@name and @age must be same length"
-  } else {
+  } else {  
     TRUE
-  }
+  }  
 })
 ```
 
@@ -299,16 +301,6 @@ setValidity("Person", function(object) {
 ##                                     
 ## Name:    comment     first      last
 ## Class: character character character
-```
-
-```r
-#setValidity("Persons", function(object){
-#  if (object@role != "aut" | "com" | "cph" | "cre" | "ctb" | "ctr" | "dtc" | "fnd" | "rev" | #"ths" | "trl") {
-#    "role must be one of the following values: aut, com, cph, cre, ctb, ctr, dtc, fnd, rev, #ths, or trl"
-#  } else {
-#    TRUE
-#  }  
-#})
 ```
 
 
@@ -351,5 +343,16 @@ setClass("DataFrame",
     row.names = NA_character_
   )
 )
+```
+
+
+
+```r
+test3 <- "string"
+if(test3 != "string" | test3 != "string2") {FALSE} else {TRUE}
+```
+
+```
+## [1] FALSE
 ```
 
