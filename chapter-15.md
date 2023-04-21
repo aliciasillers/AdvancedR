@@ -340,7 +340,5 @@ setClass("Factor2",
     labels = levels
   )
 )
-
-#error for date: "date: has a sealed class definition and cannot be redefined"
 ```
 
