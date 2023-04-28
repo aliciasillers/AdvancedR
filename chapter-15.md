@@ -436,16 +436,6 @@ Answer: they are arguments for two different purposes: setting generic, and defi
 
 3. Why does the show() method defined in Section 15.4.3 use is(object)[[1]]?
 
-```r
-setMethod("show", "Person", function(object) {
-  cat(is(object)[[1]], "\n",
-      "  Name: ", object@name, "\n",
-      "  Age:  ", object@age, "\n",
-      sep = ""
-  )
-})
-```
-
 Answer: 
 
 4. What happens if you define a method with different argument names to the generic?    
