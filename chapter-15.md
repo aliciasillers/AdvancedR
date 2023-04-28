@@ -458,7 +458,8 @@ Answer: Method graph is in repository under the name "Screenshot 2023-04-28 0821
 
 2. Draw the method graph for f(😃, 😉, 😙).
 
-3. Take the last example which shows multiple dispatch over two classes that use multiple inheritance. What happens if you define a method for all terminal classes? Why does method dispatch not save us much work here?
+3. Take the last example which shows multiple dispatch over two classes that use multiple inheritance. What happens if you define a method for all terminal classes? Why does method dispatch not save us much work here?    
+Answer: defining methods only for the terminal classes allows there to be methods for all classes, but there are many more terminal classes than other classes, so it does not save that much work. 
 
 #15.6 Notes
 
