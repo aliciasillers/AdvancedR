@@ -451,8 +451,6 @@ Answer:
 4. What happens if you define a method with different argument names to the generic?    
 Answer: It returns an error saying that methods can only add arguments to the generic if the generic has '...' as an argument    
 
-#15.5 Notes
-
 #15.5 Exercises
 
 1. Draw the method graph for f(😅, 😽)    
@@ -464,9 +462,87 @@ Answer: Method graph is in repository under the name "Screenshot 2023-04-28 0821
 
 #15.6 Notes
 
+In slots and contains you can use S4 classes, S3 classes, or the implicit class (Section 13.7.1) of a base type. To use an S3 class, you must first register it with setOldClass().
+
+```r
+setOldClass("data.frame")
+setOldClass(c("ordered", "factor"))
+setOldClass(c("glm", "lm"))
+```
+
+```r
+setClass("factor",
+  contains = "integer",
+  slots = c(
+    levels = "character"
+  ),
+  prototype = structure(
+    integer(),
+    levels = character()
+  )
+)
+setOldClass("factor", S4Class = "factor")
+```
+
+```
+## Warning in rm(list = what, pos = classWhere): object '.__C__factor' not found
+```
+
+
 #15.6 Exercises
 
 1. What would a full setOldClass() definition look like for an ordered factor (i.e. add slots and prototype the definition above)?
 
+```r
+setClass("factor",
+  contains = "integer",
+  slots = c(
+    levels = "character"
+  ),
+  prototype = structure(
+    integer(),
+    levels = character()
+  )
+)
+setOldClass("factor", S4Class = "factor")
+```
+
+```
+## Warning in rm(list = what, pos = classWhere): object '.__C__factor' not found
+```
+
+```r
+setClass("ordered",
+  contains = "factor",
+  slots = c(
+    levels = "character",
+    ordered = "logical"
+  ),
+  prototype = structure(
+    integer(),
+    levels = character(),
+    ordered = TRUE
+  )
+)
+setOldClass("ordered", S4Class = "ordered")
+```
+
+```
+## Warning in rm(list = what, pos = classWhere): object '.__C__ordered' not found
+```
+
 2. Define a length method for the Person class.
+
+```r
+setGeneric("length")
+```
+
+```
+## [1] "length"
+```
+
+```r
+setMethod("length", "Person", function(x) length(x@name))
+```
+
 
