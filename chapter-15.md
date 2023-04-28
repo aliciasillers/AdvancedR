@@ -377,19 +377,6 @@ setMethod("show", "Person", function(object) {
       sep = ""
   )
 })
-john
-```
-
-```
-## Person
-##   Name: John Smith
-##   Age:  50
-```
-
-```r
-#> Person
-#>   Name: John Smith
-#>   Age:  50
 ```
 
 all user-accessible slots should be accompanied by a pair of accessors. If the slot is unique to the class, this can just be a function:
@@ -457,19 +444,6 @@ setMethod("show", "Person", function(object) {
       sep = ""
   )
 })
-john
-```
-
-```
-## Person
-##   Name: John Smith
-##   Age:  50
-```
-
-```r
-#> Person
-#>   Name: John Smith
-#>   Age:  50
 ```
 
 Answer: 
