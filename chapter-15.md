@@ -345,5 +345,154 @@ setClass("DataFrame",
 )
 ```
 
+#15.4 Notes
 
+To create a new S4 generic, call setGeneric() with a function that calls standardGeneric():
+
+```r
+setGeneric("myGeneric", function(x) standardGeneric("myGeneric"))
+```
+
+```
+## [1] "myGeneric"
+```
+It is bad practice to use {} in the generic as it triggers a special case that is more expensive, and generally best avoided    
+
+The signature argument allows you to control the arguments that are used for method dispatch. If signature is not supplied, all arguments (apart from ...) are used.
+
+A generic isn’t useful without some methods, and in S4 you define methods with setMethod(). There are three important arguments: the name of the generic, the name of the class, and the method itself.
+
+```r
+setMethod("myGeneric", "Person", function(x) {
+  # method implementation
+})
+```
+
+
+```r
+setMethod("show", "Person", function(object) {
+  cat(is(object)[[1]], "\n",
+      "  Name: ", object@name, "\n",
+      "  Age:  ", object@age, "\n",
+      sep = ""
+  )
+})
+john
+```
+
+```
+## Person
+##   Name: John Smith
+##   Age:  50
+```
+
+```r
+#> Person
+#>   Name: John Smith
+#>   Age:  50
+```
+
+all user-accessible slots should be accompanied by a pair of accessors. If the slot is unique to the class, this can just be a function:
+
+```r
+person_name <- function(x) x@name
+```
+Typically, however, you’ll define a generic so that multiple classes can use the same interface:
+
+```r
+setGeneric("name<-", function(x, value) standardGeneric("name<-"))
+```
+
+```
+## [1] "name<-"
+```
+
+```r
+setMethod("name<-", "Person", function(x, value) {
+  x@name <- value
+  validObject(x)
+  x
+})
+```
+
+#15.4 Exercises
+
+1. Add age() accessors for the Person class.
+
+```r
+setGeneric("age", function(x) standardGeneric("age"))
+```
+
+```
+## [1] "age"
+```
+
+```r
+setGeneric("age<-", function(x, value) standardGeneric("age<-"))
+```
+
+```
+## [1] "age<-"
+```
+
+```r
+setMethod("age", "Person", function(x) x@age)
+setMethod("age<-", "Person", function(x, value) {
+  x@age <- value
+  validObject(x)
+  x
+})
+```
+
+2. In the definition of the generic, why is it necessary to repeat the name of the generic twice?   
+Answer: they are arguments for two different purposes: setting generic, and defining method dispatch    
+
+3. Why does the show() method defined in Section 15.4.3 use is(object)[[1]]?
+
+```r
+setMethod("show", "Person", function(object) {
+  cat(is(object)[[1]], "\n",
+      "  Name: ", object@name, "\n",
+      "  Age:  ", object@age, "\n",
+      sep = ""
+  )
+})
+john
+```
+
+```
+## Person
+##   Name: John Smith
+##   Age:  50
+```
+
+```r
+#> Person
+#>   Name: John Smith
+#>   Age:  50
+```
+
+Answer: 
+
+4. What happens if you define a method with different argument names to the generic?    
+Answer: It returns an error saying that methods can only add arguments to the generic if the generic has '...' as an argument    
+
+#15.5 Notes
+
+#15.5 Exercises
+
+1. Draw the method graph for f(😅, 😽)    
+Answer: Method graph is in repository under the name "Screenshot 2023-04-28 082130.png"
+
+2. Draw the method graph for f(😃, 😉, 😙).
+
+3. Take the last example which shows multiple dispatch over two classes that use multiple inheritance. What happens if you define a method for all terminal classes? Why does method dispatch not save us much work here?
+
+#15.6 Notes
+
+#15.6 Exercises
+
+1. What would a full setOldClass() definition look like for an ordered factor (i.e. add slots and prototype the definition above)?
+
+2. Define a length method for the Person class.
 
