@@ -411,6 +411,18 @@ Answer: A symbol always has length 1. c("x", "y") has a length greater than 1, p
 6. Construct the expression if(x > 1) "a" else "b" using multiple calls to call2(). How does the code structure reflect the structure of the AST?
 
 ```r
-#call2(if(x > 1), "a", else, "b")
+call2("if", (x > 1), "a")
+```
+
+```
+## if (TRUE) "a"
+```
+
+```r
+call2("else", "b")
+```
+
+```
+## `else`("b")
 ```
 
