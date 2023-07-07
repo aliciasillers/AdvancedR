@@ -321,7 +321,7 @@ expr(read.csv("foo.csv", header = TRUE))[-1]
 ```
 ## "foo.csv"(header = TRUE)
 ```
-
+Answer: read.csv is removed   
 
 3. Describe the differences between the following call objects.
 
@@ -360,7 +360,7 @@ call2(expr(median), expr(x), na.rm = TRUE)
 ```
 ## median(x, na.rm = TRUE)
 ```
-
+Answer: Median is only interpreted as a function when it is not in expr(). The value of x is evaluated when x is not in expr().   
 
 4. rlang::call_standardise() doesn’t work so well for the following calls. Why? What makes mean() special?
 
@@ -393,14 +393,24 @@ call_standardise(quote(mean(x = 1:10, , TRUE)))
 ```r
 #> mean(x = 1:10, , TRUE)
 ```
-
+Answer: mean has the ... argument, so  call_standardise does not know all of the possible arguments.    
 
 5. Why does this code not make sense?
 
 ```r
 x <- expr(foo(x = 1))
 names(x) <- c("x", "y")
+x
 ```
 
+```
+## foo(y = 1)
+```
+Answer: A symbol always has length 1. c("x", "y") has a length greater than 1, plus the expression already has the name x.   
 
 6. Construct the expression if(x > 1) "a" else "b" using multiple calls to call2(). How does the code structure reflect the structure of the AST?
+
+```r
+#call2(if(x > 1), "a", else, "b")
+```
+
