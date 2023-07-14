@@ -545,7 +545,7 @@ ast(x1 <- x2 <- x3 <- 0)
 ##     ├─x3 
 ##     └─0
 ```
-Answer: Assignment is right-operative, so it applies 0 to x3 first and then works its way left
+Answer: Assignment is right-associative, so it applies 0 to x3 first and then works its way left
 
 6. Compare the ASTs of x + y %+% z and x ^ y %+% z. What have you learned about the precedence of custom infix functions?
 
@@ -615,7 +615,7 @@ Answer: expr_text(expr) produces a single string but adds a \n to indicate that 
 10. pairwise.t.test() assumes that deparse() always returns a length one character vector. Can you construct an input that violates this expectation? What happens?
 
 ```r
-#pairwise.t.test(deparse(expr))
+#pairwise.t.test(1, deparse(expr))
 ```
 Answer: It returns an error stating that "g" in factor(g) is missing
 
@@ -776,7 +776,7 @@ flat_map_chr(letters[1:3], ~ rep(., sample(3, 1)))
 ```
 
 ```
-## [1] "a" "a" "a" "b" "c" "c"
+## [1] "a" "a" "b" "b" "c"
 ```
 
 ```r
@@ -913,10 +913,46 @@ logical_abbr(function(x = TRUE) {
 
 ```r
 logical_abbr <- function(x) {
-  logical_abbr_rec(enexpr(x))
+  logical_abbr_rec(enexpr(!!x))
 }
 ```
 Answer: It needs to recurse over the function body
+
+
+```r
+f <- quote(function(x=3, y=5) z=x+y)
+
+lobstr::ast(!!f)
+```
+
+```
+## █─`function` 
+## ├─█─x = 3 
+## │ └─y = 5 
+## ├─█─`=` 
+## │ ├─z 
+## │ └─█─`+` 
+## │   ├─x 
+## │   └─y 
+## └─<inline srcref>
+```
+
+```r
+lobstr::ast(function(x=3, y=5) z=x+y)
+```
+
+```
+## █─`function` 
+## ├─█─x = 3 
+## │ └─y = 5 
+## ├─█─`=` 
+## │ ├─z 
+## │ └─█─`+` 
+## │   ├─x 
+## │   └─y 
+## └─<inline srcref>
+```
+
 
 3. Modify find_assign to also detect assignment using replacement functions, i.e. names(x) <- y.
 
