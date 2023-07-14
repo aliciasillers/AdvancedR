@@ -776,7 +776,7 @@ flat_map_chr(letters[1:3], ~ rep(., sample(3, 1)))
 ```
 
 ```
-## [1] "a" "a" "b" "b" "b" "c" "c" "c"
+## [1] "a" "a" "a" "b" "b" "c" "c"
 ```
 
 ```r
@@ -931,9 +931,8 @@ find_assign_rec <- function(x) {
     pairlist = flat_map_chr(x, find_assign_rec),
     call = {
       if (is_call(x, "<-")) {
-        # check if second element is a call
         if (is_call(x[[2]])) {
-            as_string(x[[3]]) # return 3rd element if second element is a call
+            as_string(x[[3]])
           } else {
             as_string(x[[2]])
           }
