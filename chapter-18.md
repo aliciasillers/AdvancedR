@@ -776,7 +776,7 @@ flat_map_chr(letters[1:3], ~ rep(., sample(3, 1)))
 ```
 
 ```
-## [1] "a" "a" "b" "b" "c"
+## [1] "a" "a" "a" "b" "c" "c"
 ```
 
 ```r
@@ -879,6 +879,15 @@ find_assign(system.time(x <- print(y <- 5)))
 1. logical_abbr() returns TRUE for T(1, 2, 3). How could you modify logical_abbr_rec() so that it ignores function calls that use T or F?
 
 ```r
+T_call <- function(x) {
+  if (is_call(x, "T") | is_call(x, "F")) { # check if T or F are used as function calls
+    x <- as.list(x)[-1]
+    purrr::some(x, logical_abbr_rec)
+  } else { # treat same as pairlist
+    purrr::some(x, logical_abbr_rec)
+  }
+}
+
 logical_abbr_rec <- function(x) {
   switch_expr(x,
     # Base cases
@@ -886,7 +895,7 @@ logical_abbr_rec <- function(x) {
     symbol = as_string(x) %in% c("F", "T"),
 
     # Recursive cases
-    call = FALSE,
+    call = T_call(x),
     pairlist = purrr::some(x, logical_abbr_rec)
   )
 }
@@ -897,7 +906,23 @@ logical_abbr(T(1, 2, 3))
 ```
 ## [1] FALSE
 ```
-Answer: Set call equal to false
+
+```r
+logical_abbr(T)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+logical_abbr(T + 2)
+```
+
+```
+## [1] TRUE
+```
+Answer: If it is a call, remove pairlist to recurse over function body
 
 2. logical_abbr() works with expressions. It currently fails when you give it a function. Why? How could you modify logical_abbr() to make it work? What components of a function will you need to recurse over?
 
@@ -908,15 +933,15 @@ logical_abbr(function(x = TRUE) {
 ```
 
 ```
-## [1] FALSE
+## [1] TRUE
 ```
 
 ```r
 logical_abbr <- function(x) {
-  logical_abbr_rec(enexpr(!!x))
+  logical_abbr_rec(enexpr(x))
 }
 ```
-Answer: It needs to recurse over the function body
+Answer: If it is a call, remove pairlist to recurse over function body
 
 
 ```r
