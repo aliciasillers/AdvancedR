@@ -776,7 +776,7 @@ flat_map_chr(letters[1:3], ~ rep(., sample(3, 1)))
 ```
 
 ```
-## [1] "a" "a" "a" "b" "b" "c" "c"
+## [1] "a" "a" "a" "b" "c" "c"
 ```
 
 ```r
@@ -947,5 +947,18 @@ find_assign_rec <- function(x) {
 
 4. Write a function that extracts all calls to a specified function.
 
+```r
+find_assign_call <- function(x) {
+  if (is_call(x, "<-") && is_symbol(x[[2]])) {
+    lhs <- as_string(x[[2]])
+    children <- as.list(x)[-1]
+  } else {
+    lhs <- character()
+    children <- as.list(x)
+  }
+
+  c(lhs, flat_map_chr(children, find_assign_rec))
+}
+```
 
 
