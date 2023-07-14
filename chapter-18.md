@@ -776,7 +776,7 @@ flat_map_chr(letters[1:3], ~ rep(., sample(3, 1)))
 ```
 
 ```
-## [1] "a" "a" "b" "b" "b" "c"
+## [1] "a" "b" "c" "c" "c"
 ```
 
 ```r
@@ -920,5 +920,34 @@ Answer: It needs to recurse over the function body
 
 3. Modify find_assign to also detect assignment using replacement functions, i.e. names(x) <- y.
 
+```r
+find_assign_call <- function(x) {
+  if (is_call(x, c("<-", "names")) && is_symbol(x[[2]])) {
+    lhs <- as_string(x[[2]])
+    children <- as.list(x)[-1]
+  } else {
+    lhs <- character()
+    children <- as.list(x)
+  }
+
+  c(lhs, flat_map_chr(children, find_assign_rec))
+}
+
+find_assign_rec <- function(x) {
+  switch_expr(x,
+    # Base cases
+    constant = ,
+    symbol = character(),
+
+    # Recursive cases
+    pairlist = flat_map_chr(x, find_assign_rec),
+    call = find_assign_call(x)
+  )
+}
+```
+
+
 4. Write a function that extracts all calls to a specified function.
+
+
 
