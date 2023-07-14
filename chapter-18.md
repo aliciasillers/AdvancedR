@@ -19,6 +19,10 @@ library(lobstr)
 ## Warning: package 'lobstr' was built under R version 4.2.3
 ```
 
+```r
+library(codetools)
+```
+
 #18.2 Notes
 
 Branches of the tree are called objects and leaves of the tree are symbols or constants.
@@ -426,3 +430,216 @@ call2("else", "b")
 ## `else`("b")
 ```
 
+#18.4 Notes
+
+Precedence of infix operators is described in ?Syntax. Most operators are left-associative, but exponentiation and assignment are not.    
+Parsing and deparsing are not perfectly symmetric because parsing generates an abstract syntax tree. This means we lose backticks around ordinary names, comments, and whitespace
+
+#18.4 Exercises
+
+1. R uses parentheses in two slightly different ways as illustrated by these two calls:
+
+```r
+ast(f((1)))
+```
+
+```
+## █─f 
+## └─█─`(` 
+##   └─1
+```
+
+```r
+ast((1 + 1))
+```
+
+```
+## █─`(` 
+## └─█─`+` 
+##   ├─1 
+##   └─1
+```
+Compare and contrast the two uses by referencing the AST.   
+Answer: In the first tree, it has precedence over the the other object, f, whereas in the second tree, it does not take precedence over the other object, +. 
+
+2. = can also be used in two ways. Construct a simple example that shows both uses.
+
+```r
+ast(1 == 1)
+```
+
+```
+## █─`==` 
+## ├─1 
+## └─1
+```
+
+```r
+ast(f(x=1))
+```
+
+```
+## █─f 
+## └─x = 1
+```
+
+
+3. Does -2^2 yield 4 or -4? Why?
+
+```r
+-2^2
+```
+
+```
+## [1] -4
+```
+
+```r
+ast(-2^2)
+```
+
+```
+## █─`-` 
+## └─█─`^` 
+##   ├─2 
+##   └─2
+```
+Answer: -4 because ^ takes precedent over -, so 2 is raised to the power of 2 and then the negative is applied
+
+4. What does !1 + !1 return? Why?
+
+```r
+!1 + !1
+```
+
+```
+## [1] FALSE
+```
+
+```r
+ast(!1 + !1)
+```
+
+```
+## █─`!` 
+## └─█─`+` 
+##   ├─1 
+##   └─█─`!` 
+##     └─1
+```
+Answer: It returns false because the precedence is left-associative, so it first applies the not operator, then adds one, and then applies the not operator again to return false    
+
+5. Why does x1 <- x2 <- x3 <- 0 work? Describe the two reasons.
+
+```r
+x1 <- x2 <- x3 <- 0
+ast(x1 <- x2 <- x3 <- 0)
+```
+
+```
+## █─`<-` 
+## ├─x1 
+## └─█─`<-` 
+##   ├─x2 
+##   └─█─`<-` 
+##     ├─x3 
+##     └─0
+```
+Answer: Assignment is right-operative, so it applies 0 to x3 first and then works its way left
+
+6. Compare the ASTs of x + y %+% z and x ^ y %+% z. What have you learned about the precedence of custom infix functions?
+
+```r
+ast(x + y %+% z)
+```
+
+```
+## █─`+` 
+## ├─x 
+## └─█─`%+%` 
+##   ├─y 
+##   └─z
+```
+
+```r
+ast(x ^ y %+% z)
+```
+
+```
+## █─`%+%` 
+## ├─█─`^` 
+## │ ├─x 
+## │ └─y 
+## └─z
+```
+Answer: Custom infix functions take precedence over + but not over ^
+
+7. What happens if you call parse_expr() with a string that generates multiple expressions? e.g. parse_expr("x + 1; y + 1")
+
+```r
+#parse_expr("x + 1; y + 1")
+```
+Answer: It returns an error with a message stating that the argument must contain one expression
+
+8. What happens if you attempt to parse an invalid expression? e.g. "a +" or "f())".
+
+```r
+#parse_expr("a +")
+```
+Answer: It returns an error
+
+9. deparse() produces vectors when the input is long. For example, the following call produces a vector of length two:
+
+```r
+expr <- expr(g(a + b + c + d + e + f + g + h + i + j + k + l + 
+  m + n + o + p + q + r + s + t + u + v + w + x + y + z))
+
+deparse(expr)
+```
+
+```
+## [1] "g(a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + "
+## [2] "    p + q + r + s + t + u + v + w + x + y + z)"
+```
+What does expr_text() do instead?   
+
+```r
+expr_text(expr)
+```
+
+```
+## [1] "g(a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + \n    p + q + r + s + t + u + v + w + x + y + z)"
+```
+Answer: expr_text(expr) produces a single string but adds a \n to indicate that it goes to a new line
+
+10. pairwise.t.test() assumes that deparse() always returns a length one character vector. Can you construct an input that violates this expectation? What happens?
+
+```r
+#pairwise.t.test(deparse(expr))
+```
+Answer: It returns an error stating that "g" in factor(g) is missing
+
+#18.5 Notes
+
+findGlobals() locates all global variables used by a function. This can be useful if you want to check that your function doesn’t inadvertently rely on variables defined in their parent environment.    
+
+checkUsage() checks for a range of common problems including unused local variables, unused parameters, and the use of partial argument matching. The recursive case handles the nodes in the tree. The base case handles the leaves of the tree
+
+#18.5 Exercises
+
+1. logical_abbr() returns TRUE for T(1, 2, 3). How could you modify logical_abbr_rec() so that it ignores function calls that use T or F?
+
+2. logical_abbr() works with expressions. It currently fails when you give it a function. Why? How could you modify logical_abbr() to make it work? What components of a function will you need to recurse over?
+
+```r
+#logical_abbr(function(x = TRUE) {
+#  g(x + T)
+#})
+```
+
+
+3. Modify find_assign to also detect assignment using replacement functions, i.e. names(x) <- y.
+
+4. Write a function that extracts all calls to a specified function.
+
+#18.6 Notes
