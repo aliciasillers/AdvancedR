@@ -625,21 +625,300 @@ findGlobals() locates all global variables used by a function. This can be usefu
 
 checkUsage() checks for a range of common problems including unused local variables, unused parameters, and the use of partial argument matching. The recursive case handles the nodes in the tree. The base case handles the leaves of the tree
 
+
+```r
+expr_type <- function(x) {
+  if (rlang::is_syntactic_literal(x)) {
+    "constant"
+  } else if (is.symbol(x)) {
+    "symbol"
+  } else if (is.call(x)) {
+    "call"
+  } else if (is.pairlist(x)) {
+    "pairlist"
+  } else {
+    typeof(x)
+  }
+}
+
+expr_type(expr("a"))
+```
+
+```
+## [1] "constant"
+```
+
+```r
+#> [1] "constant"
+expr_type(expr(x))
+```
+
+```
+## [1] "symbol"
+```
+
+```r
+#> [1] "symbol"
+expr_type(expr(f(1, 2)))
+```
+
+```
+## [1] "call"
+```
+
+```r
+#> [1] "call"
+```
+
+
+```r
+switch_expr <- function(x, ...) {
+  switch(expr_type(x),
+    ...,
+    stop("Don't know how to handle type ", typeof(x), call. = FALSE)
+  )
+}
+```
+
+
+```r
+recurse_call <- function(x) {
+  switch_expr(x,
+    # Base cases
+    symbol = ,
+    constant = ,
+
+    # Recursive cases
+    call = ,
+    pairlist =
+  )
+}
+```
+
+
+```r
+logical_abbr_rec <- function(x) {
+  switch_expr(x,
+    # Base cases
+    constant = FALSE,
+    symbol = as_string(x) %in% c("F", "T"),
+
+    # Recursive cases
+    call = ,
+    pairlist = purrr::some(x, logical_abbr_rec)
+  )
+}
+```
+
+
+```r
+logical_abbr <- function(x) {
+  logical_abbr_rec(enexpr(x))
+}
+
+logical_abbr(T)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+#> [1] TRUE
+logical_abbr(FALSE)
+```
+
+```
+## [1] FALSE
+```
+
+```r
+#> [1] FALSE
+```
+
+
+```r
+find_assign_rec <- function(x) {
+  switch_expr(x,
+    constant = ,
+    symbol = character()
+  )
+}
+find_assign <- function(x) find_assign_rec(enexpr(x))
+
+find_assign("x")
+```
+
+```
+## character(0)
+```
+
+```r
+#> character(0)
+find_assign(x)
+```
+
+```
+## character(0)
+```
+
+```r
+#> character(0)
+```
+
+
+```r
+flat_map_chr <- function(.x, .f, ...) {
+  purrr::flatten_chr(purrr::map(.x, .f, ...))
+}
+
+flat_map_chr(letters[1:3], ~ rep(., sample(3, 1)))
+```
+
+```
+## [1] "a" "a" "b" "b" "b" "c"
+```
+
+```r
+#> [1] "a" "b" "b" "b" "c" "c" "c"
+```
+
+
+```r
+find_assign_rec <- function(x) {
+  switch_expr(x,
+    # Base cases
+    constant = ,
+    symbol = character(),
+
+    # Recursive cases
+    pairlist = flat_map_chr(as.list(x), find_assign_rec),
+    call = {
+      if (is_call(x, "<-")) {
+        as_string(x[[2]])
+      } else {
+        flat_map_chr(as.list(x), find_assign_rec)
+      }
+    }
+  )
+}
+
+find_assign(a <- 1)
+```
+
+```
+## [1] "a"
+```
+
+```r
+#> [1] "a"
+find_assign({
+  a <- 1
+  {
+    b <- 2
+  }
+})
+```
+
+```
+## [1] "a" "b"
+```
+
+```r
+#> [1] "a" "b"
+```
+
+
+```r
+find_assign_call <- function(x) {
+  if (is_call(x, "<-") && is_symbol(x[[2]])) {
+    lhs <- as_string(x[[2]])
+    children <- as.list(x)[-1]
+  } else {
+    lhs <- character()
+    children <- as.list(x)
+  }
+
+  c(lhs, flat_map_chr(children, find_assign_rec))
+}
+
+find_assign_rec <- function(x) {
+  switch_expr(x,
+    # Base cases
+    constant = ,
+    symbol = character(),
+
+    # Recursive cases
+    pairlist = flat_map_chr(x, find_assign_rec),
+    call = find_assign_call(x)
+  )
+}
+
+find_assign(a <- b <- c <- 1)
+```
+
+```
+## [1] "a" "b" "c"
+```
+
+```r
+#> [1] "a" "b" "c"
+find_assign(system.time(x <- print(y <- 5)))
+```
+
+```
+## [1] "x" "y"
+```
+
+```r
+#> [1] "x" "y"
+```
+
 #18.5 Exercises
 
 1. logical_abbr() returns TRUE for T(1, 2, 3). How could you modify logical_abbr_rec() so that it ignores function calls that use T or F?
 
+```r
+logical_abbr_rec <- function(x) {
+  switch_expr(x,
+    # Base cases
+    constant = FALSE,
+    symbol = as_string(x) %in% c("F", "T"),
+
+    # Recursive cases
+    call = FALSE,
+    pairlist = purrr::some(x, logical_abbr_rec)
+  )
+}
+
+logical_abbr(T(1, 2, 3))
+```
+
+```
+## [1] FALSE
+```
+Answer: Set call equal to false
+
 2. logical_abbr() works with expressions. It currently fails when you give it a function. Why? How could you modify logical_abbr() to make it work? What components of a function will you need to recurse over?
 
 ```r
-#logical_abbr(function(x = TRUE) {
-#  g(x + T)
-#})
+logical_abbr(function(x = TRUE) {
+  g(x + T)
+})
 ```
 
+```
+## [1] FALSE
+```
+
+```r
+logical_abbr <- function(x) {
+  logical_abbr_rec(enexpr(x))
+}
+```
+Answer: It needs to recurse over the function body
 
 3. Modify find_assign to also detect assignment using replacement functions, i.e. names(x) <- y.
 
 4. Write a function that extracts all calls to a specified function.
 
-#18.6 Notes
