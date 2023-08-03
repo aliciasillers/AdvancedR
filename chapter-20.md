@@ -101,7 +101,14 @@ eval(expr(x + y))
 env is the environment in which the expression should be evaluated, determining where to look for values
 
 ```r
-#eval(expr(x + y), env(x = 1000))
+eval(expr(x + y), env(x = 1000))
+```
+
+```
+## [1] 1002
+```
+
+```r
 #> [1] 1002
 ```
 
@@ -279,13 +286,111 @@ new_quosure(expr(x + y), env(x = 1, y = 10))
 ```
 ## <quosure>
 ## expr: ^x + y
-## env:  0x0000021bbcd04fc0
+## env:  0x00000264e2aacc70
 ```
 
 ```r
 #> <quosure>
 #> expr: ^x + y
 #> env:  0x7fac62d44870
+```
+
+Quosures are paired with a new evaluation function eval_tidy() that takes a single quosure instead of an expression-environment pair.
+
+```r
+q1 <- new_quosure(expr(x + y), env(x = 1, y = 10))
+eval_tidy(q1)
+```
+
+```
+## [1] 11
+```
+
+```r
+#> [1] 11
+```
+
+it’s possible for each argument passed to ... to be associated with a different environment
+
+```r
+f <- function(...) {
+  x <- 1
+  g(..., f = x)
+}
+g <- function(...) {
+  enquos(...)
+}
+
+x <- 0
+qs <- f(global = x)
+qs
+```
+
+```
+## <list_of<quosure>>
+## 
+## $global
+## <quosure>
+## expr: ^x
+## env:  global
+## 
+## $f
+## <quosure>
+## expr: ^x
+## env:  0x00000264e2344a50
+```
+
+```r
+#> <list_of<quosure>>
+#> 
+#> $global
+#> <quosure>
+#> expr: ^x
+#> env:  global
+#> 
+#> $f
+#> <quosure>
+#> expr: ^x
+#> env:  0x7fac60661d88
+```
+
+It’s possible to use quasiquotation to embed a quosure in an expression.
+
+```r
+q2 <- new_quosure(expr(x), env(x = 1))
+q3 <- new_quosure(expr(x), env(x = 10))
+
+x <- expr(!!q2 + !!q3)
+
+eval_tidy(x)
+```
+
+```
+## [1] 11
+```
+
+```r
+#> [1] 11
+ 
+x
+```
+
+```
+## (~x) + ~x
+```
+
+```r
+#> (~x) + ~x
+
+expr_print(x)
+```
+
+```
+## (^x) + (^x)
+```
+
+```r
+#> (^x) + (^x)
 ```
 
 #20.3 Exercises
@@ -300,7 +405,7 @@ q1
 ```
 ## <quosure>
 ## expr: ^x
-## env:  0x0000021bbbb2f3d8
+## env:  0x00000264e0bbdf78
 ```
 
 ```r
@@ -315,7 +420,7 @@ q2
 ```
 ## <quosure>
 ## expr: ^x + (^x)
-## env:  0x0000021bbb2b52a0
+## env:  0x00000264de845758
 ```
 
 ```r
@@ -330,7 +435,7 @@ q3
 ```
 ## <quosure>
 ## expr: ^x + (^x + (^x))
-## env:  0x0000021bbc75e5e0
+## env:  0x00000264dcea44d8
 ```
 
 ```r
@@ -338,8 +443,15 @@ q3
 #> expr: ^x + (^x + (^x))
 #> env:  0x7fac6302feb0
 ```
-Answer:
+Answer: I predict that eval_tidy(q1) will return 1, eval_tidy(q2) will return 11, and eval_tidy(q3) will return 111.    
 
 2. Write an enenv() function that captures the environment associated with an argument. (Hint: this should only require two function calls.)
 
+```r
+enenv <- function(x){
+  get_env(x)
+}
+
+#is an enenv function an existing thing or is that just what the author wants us to name our function? how is what they are asking us to do different from get_env()?
+```
 
