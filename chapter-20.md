@@ -286,7 +286,7 @@ new_quosure(expr(x + y), env(x = 1, y = 10))
 ```
 ## <quosure>
 ## expr: ^x + y
-## env:  0x00000264e2aacc70
+## env:  0x000001ae6741ac20
 ```
 
 ```r
@@ -337,7 +337,7 @@ qs
 ## $f
 ## <quosure>
 ## expr: ^x
-## env:  0x00000264e2344a50
+## env:  0x000001ae642cae78
 ```
 
 ```r
@@ -405,7 +405,7 @@ q1
 ```
 ## <quosure>
 ## expr: ^x
-## env:  0x00000264e0bbdf78
+## env:  0x000001ae67e850c0
 ```
 
 ```r
@@ -420,7 +420,7 @@ q2
 ```
 ## <quosure>
 ## expr: ^x + (^x)
-## env:  0x00000264de845758
+## env:  0x000001ae655029d0
 ```
 
 ```r
@@ -435,7 +435,7 @@ q3
 ```
 ## <quosure>
 ## expr: ^x + (^x + (^x))
-## env:  0x00000264dcea44d8
+## env:  0x000001ae65f57f48
 ```
 
 ```r
@@ -451,7 +451,124 @@ Answer: I predict that eval_tidy(q1) will return 1, eval_tidy(q2) will return 11
 enenv <- function(x){
   get_env(x)
 }
-
-#is an enenv function an existing thing or is that just what the author wants us to name our function? how is what they are asking us to do different from get_env()?
 ```
+
+
+#20.4 Exercises
+
+1. Why did I use a for loop in transform2() instead of map()? Consider transform2(df, x = x * 2, x = x * 2).   
+Answer: so that it can be step-wise
+
+2. Here’s an alternative implementation of subset2():
+
+```r
+subset3 <- function(data, rows) {
+  rows <- enquo(rows)
+  eval_tidy(expr(data[!!rows, , drop = FALSE]), data = data)
+}
+
+df <- data.frame(x = 1:3)
+subset3(df, x == 1)
+```
+
+```
+##   x
+## 1 1
+```
+Compare and contrast subset3() to subset2(). What are its advantages and disadvantages?   
+Answer: subset3 is more succinct, with subsetting occurring with the data mask
+
+3. The following function implements the basics of dplyr::arrange(). Annotate each line with a comment explaining what it does. Can you explain why !!.na.last is strictly correct, but omitting the !! is unlikely to cause problems?
+
+```r
+arrange2 <- function(.df, ..., .na.last = TRUE) {
+  args <- enquos(...) #captures and quotes arguments
+
+  order_call <- expr(order(!!!args, na.last = !!.na.last)) #defines order_call as an expression
+
+  ord <- eval_tidy(order_call, .df) #evaluates order_call
+  stopifnot(length(ord) == nrow(.df)) #checks to make sure ord length is the same as number of rows
+
+  .df[ord, , drop = FALSE] #reorder rows
+}
+```
+
+
+#20.5 Exercises
+
+1. I’ve included an alternative implementation of threshold_var() below. What makes it different to the approach I used above? What makes it harder?
+
+```r
+threshold_var <- function(df, var, val) {
+  var <- ensym(var)
+  subset2(df, `$`(.data, !!var) >= !!val)
+}
+```
+Answer: ensym(var) is not coerced to a string
+
+
+#20.6 Exercises
+
+1. Why does this function fail?
+
+```r
+lm3a <- function(formula, data) {
+  formula <- enexpr(formula)
+
+  lm_call <- expr(lm(!!formula, data = data))
+  eval(lm_call, caller_env())
+}
+#lm3a(mpg ~ disp, mtcars)$call
+#> Error in as.data.frame.default(data, optional = TRUE): 
+#> cannot coerce class ‘"function"’ to a data.frame
+```
+Answer: data is already defined in the global environment 
+
+2. When model building, typically the response and data are relatively constant while you rapidly experiment with different predictors. Write a small wrapper that allows you to reduce duplication in the code below.
+
+```r
+lm(mpg ~ disp, data = mtcars)
+```
+
+```
+## 
+## Call:
+## lm(formula = mpg ~ disp, data = mtcars)
+## 
+## Coefficients:
+## (Intercept)         disp  
+##    29.59985     -0.04122
+```
+
+```r
+lm(mpg ~ I(1 / disp), data = mtcars)
+```
+
+```
+## 
+## Call:
+## lm(formula = mpg ~ I(1/disp), data = mtcars)
+## 
+## Coefficients:
+## (Intercept)    I(1/disp)  
+##       10.75      1557.67
+```
+
+```r
+lm(mpg ~ disp * cyl, data = mtcars)
+```
+
+```
+## 
+## Call:
+## lm(formula = mpg ~ disp * cyl, data = mtcars)
+## 
+## Coefficients:
+## (Intercept)         disp          cyl     disp:cyl  
+##    49.03721     -0.14553     -3.40524      0.01585
+```
+
+
+3. Another way to write resample_lm() would be to include the resample expression (data[sample(nrow(data), replace = TRUE), , drop = FALSE]) in the data argument. Implement that approach. What are the advantages? What are the disadvantages?
+
 
