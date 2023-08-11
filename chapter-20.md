@@ -286,7 +286,7 @@ new_quosure(expr(x + y), env(x = 1, y = 10))
 ```
 ## <quosure>
 ## expr: ^x + y
-## env:  0x000001ae6741ac20
+## env:  0x00000216aaf1d3a0
 ```
 
 ```r
@@ -337,7 +337,7 @@ qs
 ## $f
 ## <quosure>
 ## expr: ^x
-## env:  0x000001ae642cae78
+## env:  0x00000216a63a0240
 ```
 
 ```r
@@ -405,7 +405,7 @@ q1
 ```
 ## <quosure>
 ## expr: ^x
-## env:  0x000001ae67e850c0
+## env:  0x00000216ab987ff8
 ```
 
 ```r
@@ -420,7 +420,7 @@ q2
 ```
 ## <quosure>
 ## expr: ^x + (^x)
-## env:  0x000001ae655029d0
+## env:  0x00000216a8fd8650
 ```
 
 ```r
@@ -435,7 +435,7 @@ q3
 ```
 ## <quosure>
 ## expr: ^x + (^x + (^x))
-## env:  0x000001ae65f57f48
+## env:  0x00000216a9a48a68
 ```
 
 ```r
@@ -568,7 +568,26 @@ lm(mpg ~ disp * cyl, data = mtcars)
 ##    49.03721     -0.14553     -3.40524      0.01585
 ```
 
+```r
+wrapper <- function(data = mtcars, env = caller_env()){
+  data <- enexpr(data)
+  
+}
+```
 
 3. Another way to write resample_lm() would be to include the resample expression (data[sample(nrow(data), replace = TRUE), , drop = FALSE]) in the data argument. Implement that approach. What are the advantages? What are the disadvantages?
 
+```r
+resample_lm <- function(formula, data,
+  resample_data = data[sample(nrow(data), replace = TRUE), ,
+                       drop = FALSE],
+  env = current_env()) {
+  formula <- enexpr(formula)
+
+  lm_env <- env(env, resample_data = resample_data)
+  lm_call <- expr(lm(!!formula, data = resample_data))
+  expr_print(lm_call)
+  eval(lm_call, lm_env)
+}
+```
 
