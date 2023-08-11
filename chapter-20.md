@@ -286,7 +286,7 @@ new_quosure(expr(x + y), env(x = 1, y = 10))
 ```
 ## <quosure>
 ## expr: ^x + y
-## env:  0x00000216aaf1d3a0
+## env:  0x000001852eee3fe0
 ```
 
 ```r
@@ -337,7 +337,7 @@ qs
 ## $f
 ## <quosure>
 ## expr: ^x
-## env:  0x00000216a63a0240
+## env:  0x0000018530023130
 ```
 
 ```r
@@ -405,7 +405,7 @@ q1
 ```
 ## <quosure>
 ## expr: ^x
-## env:  0x00000216ab987ff8
+## env:  0x0000018534652600
 ```
 
 ```r
@@ -420,7 +420,7 @@ q2
 ```
 ## <quosure>
 ## expr: ^x + (^x)
-## env:  0x00000216a8fd8650
+## env:  0x0000018532c4e8e0
 ```
 
 ```r
@@ -435,7 +435,7 @@ q3
 ```
 ## <quosure>
 ## expr: ^x + (^x + (^x))
-## env:  0x00000216a9a48a68
+## env:  0x00000185336c6a28
 ```
 
 ```r
@@ -569,9 +569,11 @@ lm(mpg ~ disp * cyl, data = mtcars)
 ```
 
 ```r
-wrapper <- function(data = mtcars, env = caller_env()){
+wrapper <- function(formula, data = mtcars, env = caller_env()){
   data <- enexpr(data)
   
+  lm_call <- expr(lm(formula = !!formula, data = !!data))
+  eval(lm_call, envir = env)
 }
 ```
 
