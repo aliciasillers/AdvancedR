@@ -65,13 +65,13 @@ library(tidyverse)
 ```
 
 
-#20.1 Notes
+# 20.1 Notes
 
 Quosure: a data structure that captures an expression along with its associated environment, as found in function arguments   
 
 Data mask: makes it easier to evaluate an expression in the context of a data frame
 
-#20.2 Notes
+# 20.2 Notes
 
 for eval(), expr is the object to evaluate
 
@@ -184,7 +184,7 @@ f()
 ## [1] 30
 ```
 
-#20.2 Exercises
+# 20.2 Exercises
 
 1. Carefully read the documentation for source(). What environment does it use by default? What if you supply local = TRUE? How do you provide a custom environment?    
 Answer: The default environment is the global environment. When local = TRUE, the environment is the environment from which source is called. You can provide a custom environment with local = env, where env is the custom environment. 
@@ -255,7 +255,7 @@ local3 <- function(expr, envir = new.env()) {
 Explain how local() works in words. (Hint: you might want to print(call) to help understand what substitute() is doing, and read the documentation to remind yourself what environment new.env() will inherit from.)   
 Answer: local captures the input expression and creates a new environment in which to evaluate it. 
 
-#20.3 Notes
+# 20.3 Notes
 
 Use enquo() and enquos() to capture user-supplied expressions. The vast majority of quosures should be created this way. 
 quo() and quos() exist to match to expr() and exprs(), but they are included only for the sake of completeness and are needed very rarely. 
@@ -286,7 +286,7 @@ new_quosure(expr(x + y), env(x = 1, y = 10))
 ```
 ## <quosure>
 ## expr: ^x + y
-## env:  0x000001c2f98e8ea0
+## env:  0x00000280d6ae1df0
 ```
 
 ```r
@@ -337,7 +337,7 @@ qs
 ## $f
 ## <quosure>
 ## expr: ^x
-## env:  0x000001c2faa0c908
+## env:  0x00000280d7bfc868
 ```
 
 ```r
@@ -393,7 +393,7 @@ expr_print(x)
 #> (^x) + (^x)
 ```
 
-#20.3 Exercises
+# 20.3 Exercises
 
 1. Predict what each of the following quosures will return if evaluated.
 
@@ -405,7 +405,7 @@ q1
 ```
 ## <quosure>
 ## expr: ^x
-## env:  0x000001c2ff08f880
+## env:  0x00000280dc2060f0
 ```
 
 ```r
@@ -420,7 +420,7 @@ q2
 ```
 ## <quosure>
 ## expr: ^x + (^x)
-## env:  0x000001c2fd63d5d0
+## env:  0x00000280da833050
 ```
 
 ```r
@@ -435,7 +435,7 @@ q3
 ```
 ## <quosure>
 ## expr: ^x + (^x + (^x))
-## env:  0x000001c2fdab80d8
+## env:  0x00000280db29c318
 ```
 
 ```r
@@ -454,7 +454,7 @@ enenv <- function(x){
 ```
 
 
-#20.4 Exercises
+# 20.4 Exercises
 
 1. Why did I use a for loop in transform2() instead of map()? Consider transform2(df, x = x * 2, x = x * 2).   
 Answer: so that it can be step-wise
@@ -494,7 +494,7 @@ arrange2 <- function(.df, ..., .na.last = TRUE) {
 ```
 
 
-#20.5 Exercises
+# 20.5 Exercises
 
 1. I’ve included an alternative implementation of threshold_var() below. What makes it different to the approach I used above? What makes it harder?
 
@@ -506,7 +506,7 @@ threshold_var <- function(df, var, val) {
 ```
 Answer: ensym(var) is not coerced to a string
 
-#20.6 Notes
+# 20.6 Notes
 
 There are three pieces that you’ll use whenever wrapping a base NSE function:
 
@@ -516,7 +516,7 @@ You generate a new expression using expr() and unquoting.
 
 You evaluate that expression in the caller environment. You have to accept that the function will not work correctly if the arguments are not defined in the caller environment. Providing the env argument at least provides a hook that experts can use if the default environment isn’t correct.
 
-#20.6 Exercises
+# 20.6 Exercises
 
 1. Why does this function fail?
 
