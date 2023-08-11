@@ -286,7 +286,7 @@ new_quosure(expr(x + y), env(x = 1, y = 10))
 ```
 ## <quosure>
 ## expr: ^x + y
-## env:  0x00000268eeda8940
+## env:  0x000001c2f98e8ea0
 ```
 
 ```r
@@ -337,7 +337,7 @@ qs
 ## $f
 ## <quosure>
 ## expr: ^x
-## env:  0x00000268efeae100
+## env:  0x000001c2faa0c908
 ```
 
 ```r
@@ -405,7 +405,7 @@ q1
 ```
 ## <quosure>
 ## expr: ^x
-## env:  0x00000268f450f2a8
+## env:  0x000001c2ff08f880
 ```
 
 ```r
@@ -420,7 +420,7 @@ q2
 ```
 ## <quosure>
 ## expr: ^x + (^x)
-## env:  0x00000268f2aec260
+## env:  0x000001c2fd63d5d0
 ```
 
 ```r
@@ -435,7 +435,7 @@ q3
 ```
 ## <quosure>
 ## expr: ^x + (^x + (^x))
-## env:  0x00000268f35b5520
+## env:  0x000001c2fdab80d8
 ```
 
 ```r
@@ -506,6 +506,15 @@ threshold_var <- function(df, var, val) {
 ```
 Answer: ensym(var) is not coerced to a string
 
+#20.6 Notes
+
+There are three pieces that you’ll use whenever wrapping a base NSE function:
+
+You capture the unevaluated arguments using enexpr(), and capture the caller environment using caller_env().
+
+You generate a new expression using expr() and unquoting.
+
+You evaluate that expression in the caller environment. You have to accept that the function will not work correctly if the arguments are not defined in the caller environment. Providing the env argument at least provides a hook that experts can use if the default environment isn’t correct.
 
 #20.6 Exercises
 
