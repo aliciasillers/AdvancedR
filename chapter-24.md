@@ -114,8 +114,8 @@ bench::mark(
 ## # A tibble: 2 × 6
 ##   expression            min   median `itr/sec` mem_alloc `gc/sec`
 ##   <bch:expr>       <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-## 1 rowSums(x)           27µs   34.5µs    16238.    98.5KB     15.7
-## 2 apply(x, 1, sum)   39.2µs   41.5µs    21405.        0B     12.9
+## 1 rowSums(x)           27µs   31.7µs    19087.    98.5KB     16.0
+## 2 apply(x, 1, sum)   39.2µs   41.4µs    22011.        0B     13.2
 ```
 
 ```r
@@ -130,8 +130,8 @@ bench::mark(
 ## # A tibble: 2 × 6
 ##   expression            min   median `itr/sec` mem_alloc `gc/sec`
 ##   <bch:expr>       <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-## 1 rowSums(x)         51.1µs   53.2µs    16947.      560B     14.6
-## 2 apply(x, 1, sum)     70µs   73.6µs    11640.    1.09KB     12.4
+## 1 rowSums(x)         51.2µs   53.3µs    17612.      560B     14.5
+## 2 apply(x, 1, sum)   70.1µs   74.7µs     8964.    1.09KB     10.4
 ```
 
 ```r
@@ -146,8 +146,8 @@ bench::mark(
 ## # A tibble: 2 × 6
 ##   expression            min   median `itr/sec` mem_alloc `gc/sec`
 ##   <bch:expr>       <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-## 1 rowSums(x)          103µs    110µs     6842.    9.31KB     10.5
-## 2 apply(x, 1, sum)    171µs    183µs     4867.   38.41KB     12.7
+## 1 rowSums(x)          104µs    112µs     7252.    9.31KB     10.5
+## 2 apply(x, 1, sum)    172µs    186µs     3994.   38.41KB     10.6
 ```
 
 
@@ -166,12 +166,12 @@ x <- rnorm(n * 1e6)
 ## # A tibble: 2 × 6
 ##   expression      min   median `itr/sec` mem_alloc `gc/sec`
 ##   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-## 1 sum           300ns    300ns  2613696.        0B      0  
-## 2 crossprod     600ns    700ns   824381.    2.22KB     82.4
+## 1 sum           300ns    400ns  1673808.        0B        0
+## 2 crossprod     600ns    700ns  1177205.    2.22KB        0
 ```
 Answer: crossprod() is about twice as fast as sum(x*w)
 
-#24.6 Notes
+# 24.6 Notes
 
 A pernicious source of slow R code is growing an object with a loop. Whenever you use c(), append(), cbind(), rbind(), or paste() to create a bigger object, R must first allocate space for the new object and then copy the old object to its new home    
 
