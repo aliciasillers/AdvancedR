@@ -244,7 +244,6 @@ cppFunction('bool all2(LogicalVector x) {
 }')
 ```
 
-
 cumprod(), cummin(), cummax().
 
 ```r
@@ -271,7 +270,6 @@ cppFunction('NumericVector cummin2(NumericVector x) {
 }')
 ```
 
-
 diff(). Start by assuming lag 1, and then generalise for lag n.
 
 ```r
@@ -285,7 +283,6 @@ cppFunction('NumericVector diff2(NumericVector x) {
   return out ;
 }')
 ```
-
 
 range().
 
@@ -307,7 +304,6 @@ cppFunction('NumericVector range2(NumericVector x) {
   return out;
 }')
 ```
-
 
 var(). Read about the approaches you can take on Wikipedia. Whenever implementing a numerical algorithm, it’s always good to check what is already known about the problem.
 
